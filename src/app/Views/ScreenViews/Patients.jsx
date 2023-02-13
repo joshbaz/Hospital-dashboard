@@ -32,7 +32,6 @@ import * as yup from 'yup'
 import { useDispatch, useSelector } from 'react-redux'
 
 import {
-    GetIndividualVitalSummary,
     GetAllPatients,
     CreatePatient,
     reset,

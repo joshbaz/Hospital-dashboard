@@ -1,11 +1,8 @@
-import React, { useEffect } from 'react'
+import React from 'react'
 import {
     Box,
     Stack,
     Text,
-    Input,
-    InputGroup,
-    InputLeftElement,
     Button,
     Table,
     Thead,
@@ -13,18 +10,14 @@ import {
     Th,
     Td,
     Tbody,
-    Checkbox,
+    useToast,
 } from '@chakra-ui/react'
 import styled from 'styled-components'
 import TopBar from '../../../components/common/Navigation/TopBar'
 import Navigation from '../../../components/common/Navigation/Navigation'
 import {
-    VictoryPie,
-    VictoryLine,
-    VictoryLabel,
     VictoryContainer,
     VictoryAxis,
-    VictoryBar,
     VictoryChart,
     VictoryArea,
     VictoryScatter,
@@ -32,22 +25,14 @@ import {
 import { Icon } from '@iconify/react'
 import '@fontsource/open-sans'
 import '@fontsource/roboto'
-import { useNavigate } from 'react-router-dom'
 
-const TableHeadNewData = [
-    {
-        title: 'Date Measured',
-    },
-    {
-        title: 'Health Type',
-    },
-    {
-        title: 'Health Vital (Value)',
-    },
-    {
-        title: 'Status',
-    },
-]
+import {
+    GetMainSummaryVitals,
+    GetMainRecentVitals,
+    GetMainMonthlySummaryVitals,
+    reset,
+} from '../../store/features/patients/patientSlice'
+import { useDispatch, useSelector } from 'react-redux'
 
 const TableHeadNewData2 = [
     {
@@ -70,153 +55,51 @@ const TableHeadNewData2 = [
     },
 ]
 
-const searchData = []
-const projectTagData = []
-const exportData = []
-const allDisplayData = [
-    {
-        _id: 1,
-        patientId: '8HI00122',
-        patientName: 'Maritza Mertz',
-        phoneNumber: '+254114 635982',
-        height: `5’6”`,
-        weight: ' 36kg',
-        platform: 'Android',
-        dateJoined: '30/12/2021',
-    },
-    {
-        _id: 2,
-        patientId: '8HI00122',
-        patientName: 'Maritza Mertz',
-        phoneNumber: '+254114 635982',
-        height: `5’6”`,
-        weight: ' 36kg',
-        platform: 'Android',
-        dateJoined: '30/12/2021',
-    },
-    {
-        _id: 3,
-        patientId: '8HI00122',
-        patientName: 'Maritza Mertz',
-        phoneNumber: '+254114 635982',
-        height: `5’6”`,
-        weight: ' 36kg',
-        platform: 'Android',
-        dateJoined: '30/12/2021',
-    },
-]
-
-const allNewDisplayData = [
-    {
-        _id: 1,
-        dateMeasured: '15 May 2020 9:30 am',
-        healthType: 'Blood glucose lvl.',
-        healthVital: 'Avg.BS (2.3 mg/dl)',
-        status: 'Critical Low',
-    },
-    {
-        _id: 2,
-        dateMeasured: '15 May 2020 9:30 am',
-        healthType: 'Blood glucose lvl.',
-        healthVital: 'Avg.BS (2.3 mg/dl)',
-        status: 'Critical Low',
-    },
-    {
-        _id: 3,
-        dateMeasured: '15 May 2020 9:30 am',
-        healthType: 'Fitness Activity',
-        healthVital: 'Swimming (39mins)',
-        status: '-',
-    },
-    {
-        _id: 4,
-        dateMeasured: '15 May 2020 9:30 am',
-        healthType: 'Blood pressure lvl.',
-        healthVital: 'Avg.BP (123/75mm/Hg)',
-        status: 'Normal',
-    },
-]
-
-const allNewDisplayData2 = [
-    {
-        _id: 1,
-        patientId: '8HI00122',
-        patientName: 'Maritza Mertz',
-        dateMeasured: '15 May 2020 9:30 am',
-        healthType: 'Blood glucose lvl.',
-        healthVital: 'Avg.BS (2.3 mg/dl)',
-        status: 'Critical Low',
-    },
-    {
-        _id: 2,
-        patientId: '8HI00122',
-        patientName: 'Maritza Mertz',
-        dateMeasured: '15 May 2020 9:30 am',
-        healthType: 'Blood glucose lvl.',
-        healthVital: 'Avg.BS (2.3 mg/dl)',
-        status: 'Critical Low',
-    },
-    {
-        _id: 3,
-        patientId: '8HI00122',
-        patientName: 'Maritza Mertz',
-        dateMeasured: '15 May 2020 9:30 am',
-        healthType: 'Fitness Activity',
-        healthVital: 'Swimming (39mins)',
-        status: '-',
-    },
-    {
-        _id: 4,
-        patientId: '8HI00122',
-        patientName: 'Maritza Mertz',
-        dateMeasured: '15 May 2020 9:30 am',
-        healthType: 'Blood pressure lvl.',
-        healthVital: 'Avg.BP (123/75mm/Hg)',
-        status: 'Normal',
-    },
-]
-
 const HealthVitalsMain = () => {
-    let routeNavigate = useNavigate()
-    const [searchActive, setSearchActive] = React.useState(false)
-    const handleSearchInput = () => {}
-    const handlePrev = () => {}
-    const handleNext = () => {}
+    let dispatch = useDispatch()
+    let toast = useToast()
+    const [graphData, setGraphData] = React.useState([])
 
-    let PaginationFirstNumber =
-        allDisplayData.currentPage * allDisplayData.itemsPerPage -
-        allDisplayData.itemsPerPage +
-        1
+    React.useEffect(() => {
+        dispatch(GetMainSummaryVitals())
+        dispatch(GetMainRecentVitals())
+        dispatch(GetMainMonthlySummaryVitals())
+    }, [dispatch])
+    const {
+        isError,
+        isSuccess,
+        message,
+        recentMainVitals,
+        mainVitalSummary,
+        mainMonthlyVitalSummary,
+    } = useSelector((state) => state.patient)
 
-    let PaginationLastNumber =
-        PaginationFirstNumber + allDisplayData.totalItemsDisplayed - 1
+    React.useEffect(() => {
+        if (isError) {
+            toast({
+                position: 'top',
+                title: message,
+                status: 'error',
+                duration: 10000,
+                isClosable: true,
+            })
+            dispatch(reset())
+        }
 
-    /** searched Pagination */
-    let PaginationSFirstNumber =
-        searchData.currentPage * searchData.itemsPerPage -
-        searchData.itemsPerPage +
-        1
-    let PaginationSLastNumber =
-        PaginationSFirstNumber + searchData.totalItemsDisplayed - 1
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isError, isSuccess, message, dispatch])
 
-    const data = [
-        { x: 'Jan', y: 10 },
-        { x: 'Feb', y: 25 },
-        { x: 'Mar', y: 40 },
-        { x: 'Apr', y: 50 },
-        { x: 'May', y: 60 },
-        { x: 'Jun', y: 50 },
-        { x: 'July', y: 70 },
-       
-    ]
+    React.useEffect(() => {
+        setGraphData(() => mainMonthlyVitalSummary.stats)
+    }, [mainMonthlyVitalSummary.stats])
 
-    const temperatures = data.map(({ y }) => y)
-    const min = Math.min(...temperatures)
-    const max = Math.max(...temperatures)
+    // const temperatures = data.map(({ y }) => y)
+    // const min = Math.min(...temperatures)
+    // const max = Math.max(...temperatures)
 
-    const ScatterPoint = ({ x, y, datum, min, max }) => {
-        return <StyledPoint cx={x} cy={y} r={8} innerRadius={50} />
-    }
+    // const ScatterPoint = ({ x, y, datum, min, max }) => {
+    //     return <StyledPoint cx={x} cy={y} r={8} innerRadius={50} />
+    // }
     return (
         <Container direction='row' w='100vw' spacing={'0px'}>
             <Box w='303px' position='relative'>
@@ -240,7 +123,7 @@ const HealthVitalsMain = () => {
                     {/** graph and stats */}
                     <GraphContainer direction='row' w='100%' spacing={'40px'}>
                         <Stack w='50%'>
-                            <TableHeadWrapper direction='row' w="93%">
+                            <TableHeadWrapper direction='row' w='93%'>
                                 <Stack>
                                     <Text className='tablehead_text'>
                                         Vitals Submitted
@@ -294,11 +177,11 @@ const HealthVitalsMain = () => {
                                                 strokeWidth: 3,
                                             },
                                         }}
-                                        data={data}
+                                        data={graphData}
                                     />
 
                                     <VictoryScatter
-                                        data={data}
+                                        data={graphData}
                                         r={8}
                                         style={{
                                             data: {
@@ -432,9 +315,21 @@ const HealthVitalsMain = () => {
                                             direction='row'
                                             spacing={'30%'}
                                             alignItems='center'>
-                                            <Text className='sum_fig'>34</Text>
-                                            <Text className='sum_percent rise'>
-                                                +2%
+                                            <Text className='sum_fig'>
+                                                {' '}
+                                                {mainVitalSummary.BeforeBF}
+                                            </Text>
+                                            <Text
+                                                className={`sum_percent ${
+                                                    mainVitalSummary.beforeBF_Percent <
+                                                    0
+                                                        ? 'decline'
+                                                        : 'rise'
+                                                }`}>
+                                                {
+                                                    mainVitalSummary.beforeBF_Percent
+                                                }
+                                                %
                                             </Text>
                                         </Stack>
                                         <Text className='sum_duration '>
@@ -452,9 +347,21 @@ const HealthVitalsMain = () => {
                                             direction='row'
                                             spacing={'30%'}
                                             alignItems='center'>
-                                            <Text className='sum_fig'>34</Text>
-                                            <Text className='sum_percent rise'>
-                                                +2%
+                                            <Text className='sum_fig'>
+                                                {' '}
+                                                {mainVitalSummary.BeforeLunch}
+                                            </Text>
+                                            <Text
+                                                className={`sum_percent ${
+                                                    mainVitalSummary.beforeLunch_Percent <
+                                                    0
+                                                        ? 'decline'
+                                                        : 'rise'
+                                                }`}>
+                                                {
+                                                    mainVitalSummary.beforeLunch_Percent
+                                                }
+                                                %
                                             </Text>
                                         </Stack>
                                         <Text className='sum_duration '>
@@ -473,9 +380,21 @@ const HealthVitalsMain = () => {
                                             direction='row'
                                             spacing={'30%'}
                                             alignItems='center'>
-                                            <Text className='sum_fig'>34</Text>
-                                            <Text className='sum_percent rise'>
-                                                +2%
+                                            <Text className='sum_fig'>
+                                                {' '}
+                                                {mainVitalSummary.BeforeDinner}
+                                            </Text>
+                                            <Text
+                                                className={`sum_percent ${
+                                                    mainVitalSummary.beforeDinner_Percent <
+                                                    0
+                                                        ? 'decline'
+                                                        : 'rise'
+                                                }`}>
+                                                {
+                                                    mainVitalSummary.beforeDinner_Percent
+                                                }
+                                                %
                                             </Text>
                                         </Stack>
                                         <Text className='sum_duration '>
@@ -492,9 +411,21 @@ const HealthVitalsMain = () => {
                                             direction='row'
                                             spacing={'30%'}
                                             alignItems='center'>
-                                            <Text className='sum_fig'>34</Text>
-                                            <Text className='sum_percent decline'>
-                                                -2%
+                                            <Text className='sum_fig'>
+                                                {' '}
+                                                {mainVitalSummary.BeforeBedtime}
+                                            </Text>
+                                            <Text
+                                                className={`sum_percent ${
+                                                    mainVitalSummary.beforeBedtime_Percent <
+                                                    0
+                                                        ? 'decline'
+                                                        : 'rise'
+                                                }`}>
+                                                {
+                                                    mainVitalSummary.beforeBedtime_Percent
+                                                }
+                                                %
                                             </Text>
                                         </Stack>
                                         <Text className='sum_duration '>
@@ -599,10 +530,12 @@ const HealthVitalsMain = () => {
                                         </Tr>
                                     </Thead>
 
+                                    {/** body */}
                                     <Tbody>
-                                        {allNewDisplayData2.length > 0 ? (
+                                        {recentMainVitals.allvitals.length >
+                                        0 ? (
                                             <>
-                                                {allNewDisplayData2.map(
+                                                {recentMainVitals.allvitals.map(
                                                     (data, index) => {
                                                         return (
                                                             <Tr
@@ -614,7 +547,9 @@ const HealthVitalsMain = () => {
                                                                         fontWeight: 500,
                                                                     }}>
                                                                     {
-                                                                        data.patientId
+                                                                        data
+                                                                            .patientUniqueId
+                                                                            .patientId
                                                                     }
                                                                 </Td>
 
@@ -629,7 +564,9 @@ const HealthVitalsMain = () => {
                                                                             '13px',
                                                                     }}>
                                                                     {
-                                                                        data.patientName
+                                                                        data
+                                                                            .patientUniqueId
+                                                                            .patientName
                                                                     }
                                                                 </Td>
                                                                 <Td

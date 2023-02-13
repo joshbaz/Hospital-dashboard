@@ -11,11 +11,13 @@ import {
     Avatar,
 } from '@chakra-ui/react'
 import { useSelector, useDispatch } from 'react-redux'
-
+import Cookies from 'js-cookie'
 import { useNavigate } from 'react-router-dom'
 
 const TopBar = ({ topbarData }) => {
     let routeNavigate = useNavigate()
+    let isAuthenticated = !!Cookies.get('_tk')
+    let users = isAuthenticated ? JSON.parse(Cookies.get('user')) : null
 
     let user = null
     return (
@@ -51,8 +53,13 @@ const TopBar = ({ topbarData }) => {
                     alignItems='center'>
                     <Box>
                         <Stack direction='column' h='100%' spacing='0px'>
-                            <NameLabel>Deborah Holt</NameLabel>
-                            <EmailLabel>debra.holt@example.com</EmailLabel>
+                            <NameLabel>
+                                {users !== null && users.fullname}
+                            </NameLabel>
+                            <EmailLabel>
+                                {' '}
+                                {users !== null && users.email}
+                            </EmailLabel>
                         </Stack>
                     </Box>
 
@@ -60,9 +67,7 @@ const TopBar = ({ topbarData }) => {
                         <MenuButton className='avatar'>
                             <Avatar
                                 size='sm'
-                                name={`${user !== null && user.firstname} ${
-                                    user !== null && user.lastname
-                                }'`}
+                                name={`${users !== null && users.fullname} '`}
                                 src=''
                                 bg='gray.400'
                             />

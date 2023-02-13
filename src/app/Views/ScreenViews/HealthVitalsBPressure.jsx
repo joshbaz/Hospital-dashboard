@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React from 'react'
 import {
     Box,
     Stack,
@@ -13,38 +13,21 @@ import {
     Th,
     Td,
     Tbody,
-    Checkbox,
+    useToast,
 } from '@chakra-ui/react'
 import styled from 'styled-components'
 import TopBar from '../../../components/common/Navigation/TopBar'
 import Navigation from '../../../components/common/Navigation/Navigation'
-import {
-    VictoryPie,
-    VictoryLabel,
-    VictoryContainer,
-    VictoryAxis,
-    VictoryBar,
-    VictoryChart,
-} from 'victory'
+
 import { Icon } from '@iconify/react'
 import '@fontsource/open-sans'
 import '@fontsource/roboto'
-import { useNavigate } from 'react-router-dom'
 
-const TableHeadNewData = [
-    {
-        title: 'Date Measured',
-    },
-    {
-        title: 'Health Type',
-    },
-    {
-        title: 'Health Vital (Value)',
-    },
-    {
-        title: 'Status',
-    },
-]
+import {
+    GetAllBPVitals,
+    reset,
+} from '../../store/features/patients/patientSlice'
+import { useDispatch, useSelector } from 'react-redux'
 
 const TableHeadNewData2 = [
     {
@@ -67,119 +50,235 @@ const TableHeadNewData2 = [
     },
 ]
 
-const searchData = []
-const projectTagData = []
-const exportData = []
-const allDisplayData = [
-    {
-        _id: 1,
-        patientId: '8HI00122',
-        patientName: 'Maritza Mertz',
-        phoneNumber: '+254114 635982',
-        height: `5’6”`,
-        weight: ' 36kg',
-        platform: 'Android',
-        dateJoined: '30/12/2021',
-    },
-    {
-        _id: 2,
-        patientId: '8HI00122',
-        patientName: 'Maritza Mertz',
-        phoneNumber: '+254114 635982',
-        height: `5’6”`,
-        weight: ' 36kg',
-        platform: 'Android',
-        dateJoined: '30/12/2021',
-    },
-    {
-        _id: 3,
-        patientId: '8HI00122',
-        patientName: 'Maritza Mertz',
-        phoneNumber: '+254114 635982',
-        height: `5’6”`,
-        weight: ' 36kg',
-        platform: 'Android',
-        dateJoined: '30/12/2021',
-    },
-]
-
-const allNewDisplayData = [
-    {
-        _id: 1,
-        dateMeasured: '15 May 2020 9:30 am',
-        healthType: 'Blood glucose lvl.',
-        healthVital: 'Avg.BS (2.3 mg/dl)',
-        status: 'Critical Low',
-    },
-    {
-        _id: 2,
-        dateMeasured: '15 May 2020 9:30 am',
-        healthType: 'Blood glucose lvl.',
-        healthVital: 'Avg.BS (2.3 mg/dl)',
-        status: 'Critical Low',
-    },
-    {
-        _id: 3,
-        dateMeasured: '15 May 2020 9:30 am',
-        healthType: 'Fitness Activity',
-        healthVital: 'Swimming (39mins)',
-        status: '-',
-    },
-    {
-        _id: 4,
-        dateMeasured: '15 May 2020 9:30 am',
-        healthType: 'Blood pressure lvl.',
-        healthVital: 'Avg.BP (123/75mm/Hg)',
-        status: 'Normal',
-    },
-]
-
-const allNewDisplayData2 = [
-    {
-        _id: 1,
-        patientId: '8HI00122',
-        patientName: 'Maritza Mertz',
-        dateMeasured: '15 May 2020 9:30 am',
-        healthType: 'Blood glucose lvl.',
-        healthVital: 'Avg.BS (2.3 mg/dl)',
-        status: 'Critical Low',
-    },
-    {
-        _id: 2,
-        patientId: '8HI00122',
-        patientName: 'Maritza Mertz',
-        dateMeasured: '15 May 2020 9:30 am',
-        healthType: 'Blood glucose lvl.',
-        healthVital: 'Avg.BS (2.3 mg/dl)',
-        status: 'Critical Low',
-    },
-    {
-        _id: 3,
-        patientId: '8HI00122',
-        patientName: 'Maritza Mertz',
-        dateMeasured: '15 May 2020 9:30 am',
-        healthType: 'Fitness Activity',
-        healthVital: 'Swimming (39mins)',
-        status: '-',
-    },
-    {
-        _id: 4,
-        patientId: '8HI00122',
-        patientName: 'Maritza Mertz',
-        dateMeasured: '15 May 2020 9:30 am',
-        healthType: 'Blood pressure lvl.',
-        healthVital: 'Avg.BP (123/75mm/Hg)',
-        status: 'Normal',
-    },
-]
-
 const HealthVitalsBPressure = () => {
-    let routeNavigate = useNavigate()
+    let dispatch = useDispatch()
+    let toast = useToast()
     const [searchActive, setSearchActive] = React.useState(false)
-    const handleSearchInput = () => {}
-    const handlePrev = () => {}
-    const handleNext = () => {}
+    const [searchValue, setSearchValue] = React.useState('')
+    const [perPage, setPerPage] = React.useState(10)
+    const [allDisplayData, setAllDisplayData] = React.useState({
+        items: [],
+        allItems: [],
+        currentPage: 1,
+        itemsPerPage: 8,
+        totalItemsDisplayed: 0,
+        totalAllItems: 0,
+        totalPages: 0,
+    })
+    const [searchData, setSearchData] = React.useState({
+        items: [],
+        allItems: [],
+        currentPage: 1,
+        itemsPerPage: 8,
+        totalItemsDisplayed: 0,
+        totalAllItems: 0,
+        totalPages: 0,
+    })
 
+    const { isError, isSuccess, message, bpItems } = useSelector(
+        (state) => state.patient
+    )
+
+    React.useEffect(() => {
+        dispatch(GetAllBPVitals())
+    }, [])
+
+    React.useEffect(() => {
+        if (isError) {
+            toast({
+                position: 'top',
+                title: message,
+                status: 'error',
+                duration: 10000,
+                isClosable: true,
+            })
+            dispatch(reset())
+        }
+
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isError, isSuccess, message, dispatch])
+
+    //paginate the all items
+    React.useEffect(() => {
+        let allQueriedItems = bpItems.items.filter((data) => {
+            return data
+        })
+
+        const allItemsCollected = allQueriedItems
+
+        const totalItems = allQueriedItems.length
+        let itemsPerPage = perPage
+
+        const currentPage = allDisplayData.currentPage
+        const indexOfLastItem = currentPage * itemsPerPage
+        const indexOfFirstItem = indexOfLastItem - itemsPerPage
+
+        const currentItems = allItemsCollected.slice(
+            indexOfFirstItem,
+            indexOfLastItem
+        )
+
+        const pageLength = Math.ceil(totalItems / itemsPerPage)
+
+        setAllDisplayData({
+            items: currentItems,
+            allItems: allQueriedItems,
+            currentPage: currentPage,
+            itemsPerPage: itemsPerPage,
+            totalItemsDisplayed: currentItems.length,
+            totalAllItems: allQueriedItems.length,
+            totalPages: pageLength,
+        })
+    }, [bpItems])
+
+    /** paginate search */
+    React.useEffect(() => {
+        const searchResults = allDisplayData.allItems.filter((data) => {
+            let serachedValue = searchValue
+                ? searchValue.toLowerCase()
+                : searchValue
+            let name = data.patientName.toLowerCase()
+            let patientId = data.patientId.toLowerCase()
+            if (name.includes(serachedValue)) {
+                return data
+            } else if (patientId.includes(serachedValue)) {
+                return data
+            } else {
+            }
+        })
+
+        const allItemsCollected = searchResults
+
+        const totalItems = searchResults.length
+
+        let itemsPerPage = perPage
+
+        const currentPage = searchData.currentPage
+
+        const indexOfLastItem = currentPage * itemsPerPage
+        const indexOfFirstItem = indexOfLastItem - itemsPerPage
+
+        const currentItems = allItemsCollected.slice(
+            indexOfFirstItem,
+            indexOfLastItem
+        )
+
+        const pageLength = Math.ceil(totalItems / itemsPerPage)
+
+        setSearchData({
+            items: currentItems,
+            allItems: searchResults,
+            currentPage: currentPage,
+            itemsPerPage: itemsPerPage,
+            totalItemsDisplayed: currentItems.length,
+            totalAllItems: searchResults.length,
+            totalPages: pageLength,
+        })
+    }, [searchValue])
+
+    //handle previous button
+    const handlePrev = () => {
+        if (searchActive) {
+            if (searchData.currentPage - 1 >= 1) {
+                let page = searchData.currentPage - 1
+                const indexOfLastItem = page * searchData.itemsPerPage
+                const indexOfFirstItem =
+                    indexOfLastItem - searchData.itemsPerPage
+
+                const currentItems = searchData.allItems.slice(
+                    indexOfFirstItem,
+                    indexOfLastItem
+                )
+
+                setSearchData({
+                    ...searchData,
+                    currentPage: page,
+                    itemsPerPage: perPage,
+                    items: currentItems,
+                    totalItemsDisplayed: currentItems.length,
+                })
+            }
+        } else {
+            if (allDisplayData.currentPage - 1 >= 1) {
+                let page = allDisplayData.currentPage - 1
+                const indexOfLastItem = page * allDisplayData.itemsPerPage
+                const indexOfFirstItem =
+                    indexOfLastItem - allDisplayData.itemsPerPage
+
+                const currentItems = allDisplayData.allItems.slice(
+                    indexOfFirstItem,
+                    indexOfLastItem
+                )
+
+                setAllDisplayData({
+                    ...allDisplayData,
+                    currentPage: page,
+                    itemsPerPage: perPage,
+                    items: currentItems,
+                    totalItemsDisplayed: currentItems.length,
+                })
+            }
+        }
+    }
+
+    //handle next button
+    const handleNext = () => {
+        if (searchActive) {
+            if (searchData.currentPage + 1 <= searchData.totalPages) {
+                let page = searchData.currentPage + 1
+                const indexOfLastItem = page * searchData.itemsPerPage
+                const indexOfFirstItem =
+                    indexOfLastItem - searchData.itemsPerPage
+
+                const currentItems = searchData.allItems.slice(
+                    indexOfFirstItem,
+                    indexOfLastItem
+                )
+
+                setSearchData({
+                    ...searchData,
+                    currentPage: page,
+                    itemsPerPage: perPage,
+                    items: currentItems,
+                    totalItemsDisplayed: currentItems.length,
+                })
+            }
+        } else {
+            if (allDisplayData.currentPage + 1 <= allDisplayData.totalPages) {
+                let page = allDisplayData.currentPage + 1
+                const indexOfLastItem = page * allDisplayData.itemsPerPage
+                const indexOfFirstItem =
+                    indexOfLastItem - allDisplayData.itemsPerPage
+
+                const currentItems = allDisplayData.allItems.slice(
+                    indexOfFirstItem,
+                    indexOfLastItem
+                )
+
+                setAllDisplayData({
+                    ...allDisplayData,
+                    currentPage: page,
+                    itemsPerPage: perPage,
+                    items: currentItems,
+                    totalItemsDisplayed: currentItems.length,
+                })
+            }
+        }
+    }
+
+    const handleSearchInput = (e) => {
+        console.log(e.target.value, 'values')
+
+        setSearchValue(() => e.target.value)
+
+        if (e.target.value) {
+            setSearchActive(() => true)
+        } else {
+            setSearchActive(() => false)
+        }
+    }
+
+    //pages
     let PaginationFirstNumber =
         allDisplayData.currentPage * allDisplayData.itemsPerPage -
         allDisplayData.itemsPerPage +
@@ -233,7 +332,7 @@ const HealthVitalsBPressure = () => {
                             <Input
                                 h='35px'
                                 type='text'
-                                value={''}
+                                value={searchValue}
                                 bg={'#f0f2f3'}
                                 placeholder='Search...'
                                 minW={{
@@ -340,183 +439,406 @@ const HealthVitalsBPressure = () => {
                                         </Tr>
                                     </Thead>
 
-                                    <Tbody>
-                                        {allNewDisplayData2.length > 0 ? (
-                                            <>
-                                                {allNewDisplayData2.map(
-                                                    (data, index) => {
-                                                        return (
-                                                            <Tr
-                                                                className={`table_row `}
-                                                                key={data._id}>
-                                                                <Td
-                                                                    style={{
-                                                                        color: '#5E5C60',
-                                                                        fontWeight: 500,
-                                                                    }}>
-                                                                    {
-                                                                        data.patientId
-                                                                    }
-                                                                </Td>
+                                    {/** body */}
+                                    {searchActive ? (
+                                        <Tbody>
+                                            {searchData.items.length > 0 ? (
+                                                <>
+                                                    {searchData.items.map(
+                                                        (data, index) => {
+                                                            return (
+                                                                <Tr
+                                                                    className={`table_row `}
+                                                                    key={
+                                                                        data._id
+                                                                    }>
+                                                                    <Td
+                                                                        style={{
+                                                                            color: '#5E5C60',
+                                                                            fontWeight: 500,
+                                                                        }}>
+                                                                        {
+                                                                            data
+                                                                                .patientUniqueId
+                                                                                .patientId
+                                                                        }
+                                                                    </Td>
 
-                                                                <Td
-                                                                    minW='150px'
-                                                                    maxW='150px'
-                                                                    className='studentName'
-                                                                    style={{
-                                                                        color: '#15151D',
-                                                                        fontWeight: 500,
-                                                                        fontSize:
-                                                                            '13px',
-                                                                    }}>
-                                                                    {
-                                                                        data.patientName
-                                                                    }
-                                                                </Td>
-                                                                <Td
-                                                                    maxW='250px'
-                                                                    style={{
-                                                                        fontWeight: 500,
-                                                                        color: '#15151D',
-                                                                    }}>
-                                                                    {
-                                                                        data.dateMeasured
-                                                                    }
-                                                                </Td>
+                                                                    <Td
+                                                                        minW='150px'
+                                                                        maxW='150px'
+                                                                        className='studentName'
+                                                                        style={{
+                                                                            color: '#15151D',
+                                                                            fontWeight: 500,
+                                                                            fontSize:
+                                                                                '13px',
+                                                                        }}>
+                                                                        {
+                                                                            data
+                                                                                .patientUniqueId
+                                                                                .patientName
+                                                                        }
+                                                                    </Td>
+                                                                    <Td
+                                                                        maxW='250px'
+                                                                        style={{
+                                                                            fontWeight: 500,
+                                                                            color: '#15151D',
+                                                                        }}>
+                                                                        {
+                                                                            data.dateMeasured
+                                                                        }
+                                                                    </Td>
 
-                                                                <Td
-                                                                    maxW='250px'
-                                                                    style={{
-                                                                        fontWeight: 500,
-                                                                        color: '#15151D',
-                                                                    }}>
-                                                                    {
-                                                                        data.healthType
-                                                                    }
-                                                                </Td>
-                                                                <Td
-                                                                    maxW='250px'
-                                                                    style={{
-                                                                        fontWeight: 500,
-                                                                        color: '#15151D',
-                                                                    }}>
-                                                                    {
-                                                                        data.healthVital
-                                                                    }
-                                                                </Td>
-                                                                <Td
-                                                                    maxW='250px'
-                                                                    style={{
-                                                                        fontWeight: 500,
-                                                                        color: '#15151D',
-                                                                    }}>
-                                                                    <Stack
-                                                                        alignItems='center'
-                                                                        justifyContent='center'>
-                                                                        <Box
-                                                                            className={`status ${
-                                                                                data.status ===
-                                                                                    'Normal' &&
-                                                                                'normal'
-                                                                            } ${
-                                                                                data.status ===
-                                                                                    'Critical Low' &&
-                                                                                'critical'
-                                                                            }`}>
-                                                                            {
-                                                                                data.status
-                                                                            }
-                                                                        </Box>
-                                                                    </Stack>
-                                                                </Td>
-                                                            </Tr>
-                                                        )
-                                                    }
-                                                )}
-                                            </>
-                                        ) : (
-                                            <Tr
-                                                position='relative'
-                                                h='48px'
-                                                borderBottom={
-                                                    '1px solid #E1FCEF'
-                                                }>
-                                                <Box>
-                                                    <NoItems>
-                                                        No Records Found
-                                                    </NoItems>
-                                                </Box>
-                                            </Tr>
-                                        )}
-                                    </Tbody>
+                                                                    <Td
+                                                                        maxW='250px'
+                                                                        style={{
+                                                                            fontWeight: 500,
+                                                                            color: '#15151D',
+                                                                        }}>
+                                                                        {
+                                                                            data.healthType
+                                                                        }
+                                                                    </Td>
+                                                                    <Td
+                                                                        maxW='250px'
+                                                                        style={{
+                                                                            fontWeight: 500,
+                                                                            color: '#15151D',
+                                                                        }}>
+                                                                        {
+                                                                            data.healthVital
+                                                                        }
+                                                                    </Td>
+                                                                    <Td
+                                                                        maxW='250px'
+                                                                        style={{
+                                                                            fontWeight: 500,
+                                                                            color: '#15151D',
+                                                                        }}>
+                                                                        <Stack
+                                                                            alignItems='center'
+                                                                            justifyContent='center'>
+                                                                            <Box
+                                                                                className={`status ${
+                                                                                    data.status ===
+                                                                                        'Normal' &&
+                                                                                    'normal'
+                                                                                } ${
+                                                                                    data.status ===
+                                                                                        'Critical Low' &&
+                                                                                    'critical'
+                                                                                }`}>
+                                                                                {
+                                                                                    data.status
+                                                                                }
+                                                                            </Box>
+                                                                        </Stack>
+                                                                    </Td>
+                                                                </Tr>
+                                                            )
+                                                        }
+                                                    )}
+                                                </>
+                                            ) : (
+                                                <Tr
+                                                    position='relative'
+                                                    h='48px'
+                                                    borderBottom={
+                                                        '1px solid #E1FCEF'
+                                                    }>
+                                                    <Box>
+                                                        <NoItems>
+                                                            No Records Found
+                                                        </NoItems>
+                                                    </Box>
+                                                </Tr>
+                                            )}
+                                        </Tbody>
+                                    ) : (
+                                        <Tbody>
+                                            {allDisplayData.items.length > 0 ? (
+                                                <>
+                                                    {allDisplayData.items.map(
+                                                        (data, index) => {
+                                                            return (
+                                                                <Tr
+                                                                    className={`table_row `}
+                                                                    key={
+                                                                        data._id
+                                                                    }>
+                                                                    <Td
+                                                                        style={{
+                                                                            color: '#5E5C60',
+                                                                            fontWeight: 500,
+                                                                        }}>
+                                                                        {
+                                                                            data
+                                                                                .patientUniqueId
+                                                                                .patientId
+                                                                        }
+                                                                    </Td>
+
+                                                                    <Td
+                                                                        minW='150px'
+                                                                        maxW='150px'
+                                                                        className='studentName'
+                                                                        style={{
+                                                                            color: '#15151D',
+                                                                            fontWeight: 500,
+                                                                            fontSize:
+                                                                                '13px',
+                                                                        }}>
+                                                                        {
+                                                                            data
+                                                                                .patientUniqueId
+                                                                                .patientName
+                                                                        }
+                                                                    </Td>
+                                                                    <Td
+                                                                        maxW='250px'
+                                                                        style={{
+                                                                            fontWeight: 500,
+                                                                            color: '#15151D',
+                                                                        }}>
+                                                                        {
+                                                                            data.dateMeasured
+                                                                        }
+                                                                    </Td>
+
+                                                                    <Td
+                                                                        maxW='250px'
+                                                                        style={{
+                                                                            fontWeight: 500,
+                                                                            color: '#15151D',
+                                                                        }}>
+                                                                        {
+                                                                            data.healthType
+                                                                        }
+                                                                    </Td>
+                                                                    <Td
+                                                                        maxW='250px'
+                                                                        style={{
+                                                                            fontWeight: 500,
+                                                                            color: '#15151D',
+                                                                        }}>
+                                                                        {
+                                                                            data.healthVital
+                                                                        }
+                                                                    </Td>
+                                                                    <Td
+                                                                        maxW='250px'
+                                                                        style={{
+                                                                            fontWeight: 500,
+                                                                            color: '#15151D',
+                                                                        }}>
+                                                                        <Stack
+                                                                            alignItems='center'
+                                                                            justifyContent='center'>
+                                                                            <Box
+                                                                                className={`status ${
+                                                                                    data.status ===
+                                                                                        'Normal' &&
+                                                                                    'normal'
+                                                                                } ${
+                                                                                    data.status ===
+                                                                                        'Critical Low' &&
+                                                                                    'critical'
+                                                                                }`}>
+                                                                                {
+                                                                                    data.status
+                                                                                }
+                                                                            </Box>
+                                                                        </Stack>
+                                                                    </Td>
+                                                                </Tr>
+                                                            )
+                                                        }
+                                                    )}
+                                                </>
+                                            ) : (
+                                                <Tr
+                                                    position='relative'
+                                                    h='48px'
+                                                    borderBottom={
+                                                        '1px solid #E1FCEF'
+                                                    }>
+                                                    <Box>
+                                                        <NoItems>
+                                                            No Records Found
+                                                        </NoItems>
+                                                    </Box>
+                                                </Tr>
+                                            )}
+                                        </Tbody>
+                                    )}
                                 </Table>
                             </TableContainer>
 
                             {/** pagination */}
+                            {searchActive ? (
+                                <Box>
+                                    {' '}
+                                    {searchData.items.length > 0 && (
+                                        <PaginationStack
+                                            direction='row'
+                                            w='100%'
+                                            height='56px'
+                                            alignItems='center'
+                                            justifyContent={'space-between'}>
+                                            <Stack
+                                                w='20%'
+                                                direction='row'
+                                                className='pages'>
+                                                <Text>Displaying</Text>
+                                                <Text>
+                                                    {`${PaginationSFirstNumber}`}{' '}
+                                                    -{' '}
+                                                    {`${PaginationSLastNumber}`}{' '}
+                                                    of{' '}
+                                                    {`${searchData.totalAllItems}`}
+                                                </Text>
+                                            </Stack>
+                                            <Stack
+                                                w='80%'
+                                                h='90%'
+                                                direction='row'
+                                                spacing='20px'
+                                                alignItems='center'
+                                                className='pagination'>
+                                                <Box className='rows'>
+                                                    <h1>Rows per page:</h1>
+                                                    <span>
+                                                        {
+                                                            searchData.itemsPerPage
+                                                        }
+                                                    </span>
+                                                </Box>
 
-                            <PaginationStack
-                                direction='row'
-                                w='100%'
-                                height='56px'
-                                alignItems='center'
-                                justifyContent={'space-between'}>
-                                <Stack
-                                    w='20%'
-                                    direction='row'
-                                    className='pages'>
-                                    <Text>Displaying</Text>
-                                    <Text>
-                                        {`${1}`} - {`${20}`} of {`${6}`}
-                                    </Text>
-                                </Stack>
-                                <Stack
-                                    w='80%'
-                                    h='90%'
-                                    direction='row'
-                                    spacing='20px'
-                                    alignItems='center'
-                                    className='pagination'>
-                                    <Box className='rows'>
-                                        <h1>Rows per page:</h1>
-                                        <span>{'20'}</span>
-                                    </Box>
+                                                {/** pagination arrows */}
+                                                <Stack
+                                                    direction='row'
+                                                    alignItems='center'
+                                                    className='arrows'>
+                                                    <Box
+                                                        className='left'
+                                                        onClick={handlePrev}>
+                                                        <Box>
+                                                            <Icon
+                                                                icon='material-symbols:arrow-back'
+                                                                color='#616569'
+                                                                width='16'
+                                                                height='20'
+                                                            />
+                                                        </Box>
+                                                    </Box>
+                                                    <Box>
+                                                        {' '}
+                                                        {searchData.currentPage}
+                                                        /{searchData.totalPages}
+                                                    </Box>
+                                                    <Box
+                                                        className='right'
+                                                        onClick={handleNext}>
+                                                        <Box>
+                                                            <Icon
+                                                                icon='material-symbols:arrow-forward'
+                                                                color='#616569'
+                                                                width='16'
+                                                                height='20'
+                                                            />
+                                                        </Box>
+                                                    </Box>
+                                                </Stack>
+                                            </Stack>
+                                        </PaginationStack>
+                                    )}
+                                </Box>
+                            ) : (
+                                <Box>
+                                    {' '}
+                                    {allDisplayData.items.length > 0 && (
+                                        <PaginationStack
+                                            direction='row'
+                                            w='100%'
+                                            height='56px'
+                                            alignItems='center'
+                                            justifyContent={'space-between'}>
+                                            <Stack
+                                                w='20%'
+                                                direction='row'
+                                                className='pages'>
+                                                <Text>Displaying</Text>
+                                                <Text>
+                                                    {`${PaginationFirstNumber}`}{' '}
+                                                    -{' '}
+                                                    {`${PaginationLastNumber}`}{' '}
+                                                    of{' '}
+                                                    {`${allDisplayData.totalAllItems}`}
+                                                </Text>
+                                            </Stack>
+                                            <Stack
+                                                w='80%'
+                                                h='90%'
+                                                direction='row'
+                                                spacing='20px'
+                                                alignItems='center'
+                                                className='pagination'>
+                                                <Box className='rows'>
+                                                    <h1>Rows per page:</h1>
+                                                    <span>
+                                                        {
+                                                            allDisplayData.itemsPerPage
+                                                        }
+                                                    </span>
+                                                </Box>
 
-                                    {/** pagination arrows */}
-                                    <Stack
-                                        direction='row'
-                                        alignItems='center'
-                                        className='arrows'>
-                                        <Box
-                                            className='left'
-                                            onClick={handlePrev}>
-                                            <Box>
-                                                <Icon
-                                                    icon='material-symbols:arrow-back'
-                                                    color='#616569'
-                                                    width='20'
-                                                    height='20'
-                                                />
-                                            </Box>
-                                        </Box>
-                                        <Box>
-                                            {' '}
-                                            {'2'}/{'3'}
-                                        </Box>
-                                        <Box
-                                            className='right'
-                                            onClick={handleNext}>
-                                            <Box>
-                                                <Icon
-                                                    icon='material-symbols:arrow-forward'
-                                                    color='#616569'
-                                                    width='20'
-                                                    height='20'
-                                                />
-                                            </Box>
-                                        </Box>
-                                    </Stack>
-                                </Stack>
-                            </PaginationStack>
+                                                {/** pagination arrows */}
+                                                <Stack
+                                                    direction='row'
+                                                    alignItems='center'
+                                                    className='arrows'>
+                                                    <Box
+                                                        className='left'
+                                                        onClick={handlePrev}>
+                                                        <Box>
+                                                            <Icon
+                                                                icon='material-symbols:arrow-back'
+                                                                color='#616569'
+                                                                width='16'
+                                                                height='20'
+                                                            />
+                                                        </Box>
+                                                    </Box>
+                                                    <Box>
+                                                        {' '}
+                                                        {
+                                                            allDisplayData.currentPage
+                                                        }
+                                                        /
+                                                        {
+                                                            allDisplayData.totalPages
+                                                        }
+                                                    </Box>
+                                                    <Box
+                                                        className='right'
+                                                        onClick={handleNext}>
+                                                        <Box>
+                                                            <Icon
+                                                                icon='material-symbols:arrow-forward'
+                                                                color='#616569'
+                                                                width='16'
+                                                                height='20'
+                                                            />
+                                                        </Box>
+                                                    </Box>
+                                                </Stack>
+                                            </Stack>
+                                        </PaginationStack>
+                                    )}
+                                </Box>
+                            )}
                         </Stack>
                     </Stack>
                 </Stack>

@@ -51,7 +51,7 @@ const TableHeadNewData2 = [
         title: 'Drug Name',
     },
     {
-        title: 'Genetic Name',
+        title: 'Generic Name',
     },
     {
         title: 'Class',
@@ -640,7 +640,7 @@ const ViewPatient = () => {
                                                                         color: '#15151D',
                                                                     }}>
                                                                     {
-                                                                        data.geneticsName
+                                                                        data.genericName
                                                                     }
                                                                 </Td>
 
@@ -650,7 +650,9 @@ const ViewPatient = () => {
                                                                         fontWeight: 500,
                                                                         color: '#15151D',
                                                                     }}>
-                                                                    {data.class}
+                                                                    {
+                                                                        data.drugclass
+                                                                    }
                                                                 </Td>
                                                                 <Td
                                                                     maxW='250px'
@@ -668,9 +670,10 @@ const ViewPatient = () => {
                                                                         fontWeight: 500,
                                                                         color: '#15151D',
                                                                     }}>
-                                                                    {
-                                                                        data.status
-                                                                    }
+                                                                    {data.status ===
+                                                                    'false'
+                                                                        ? 'Inactive'
+                                                                        : 'active'}
                                                                 </Td>
                                                                 <Td
                                                                     maxW='250px'
@@ -679,7 +682,9 @@ const ViewPatient = () => {
                                                                         color: '#15151D',
                                                                     }}>
                                                                     {
-                                                                        data.refillRequirement
+                                                                        data
+                                                                            .refillRequest
+                                                                            .length
                                                                     }
                                                                 </Td>
                                                             </Tr>

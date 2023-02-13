@@ -10,6 +10,13 @@ const initialState = {
     allItems: {
         items: [],
     },
+    recentMainVitals: {
+        allvitals: [],
+    },
+    bpItems: { items: [] },
+    bsItems: { items: [] },
+    faItems: { items: [] },
+    elistItems: { items: [] },
     individualVitalSummary: {
         BeforeBF: 0,
         BeforeLunch: 0,
@@ -30,6 +37,37 @@ const initialState = {
         patient: null,
         vitals: [],
         prescription: [],
+    },
+    mainVitalSummary: {
+        BeforeBF: 0,
+        BeforeLunch: 0,
+        BeforeDinner: 0,
+        BeforeBedtime: 0,
+        beforeBF_Percent: 0,
+        beforeLunch_Percent: 0,
+        beforeDinner_Percent: 0,
+        beforeBedtime_Percent: 0,
+    },
+    mainMonthlyVitalSummary: {
+        stats: [],
+    },
+    dashboardReports: {
+        Patients: 0,
+        BloodReports: 0,
+        FitnessReports: 0,
+        EmergencyList: 0,
+    },
+    dashboardPieReports: {
+        reports: [],
+        BloodPReports: 0,
+        BloodSReports: 0,
+        FitnessReports: 0,
+        overallTotal: 0,
+    },
+    dashboardBarReports: {
+        reports: [],
+        CurrentTotal: 0,
+        PatientPercent: 0,
     },
 }
 
@@ -100,7 +138,7 @@ export const EditPrescription = createAsyncThunk(
 )
 
 export const GetAllPatients = createAsyncThunk(
-    'patient/getall',
+    '/patient/getall',
     async (details, thunkAPI) => {
         const getAttempt = await patientService.getAllPatients()
 
@@ -172,6 +210,226 @@ export const GetIndividualPatient = createAsyncThunk(
     'patient/individualpatient',
     async (details, thunkAPI) => {
         const getAttempt = await patientService.getIndividualPatient(details)
+
+        if (getAttempt.type === 'success') {
+            return getAttempt
+        } else {
+            if (
+                getAttempt.message === 'jwt expired' ||
+                getAttempt.message === 'Not authenticated'
+            ) {
+                authService.logout()
+                return thunkAPI.rejectWithValue(getAttempt.message)
+            } else {
+                return thunkAPI.rejectWithValue(getAttempt.message)
+            }
+        }
+    }
+)
+
+/** General vitals  */
+
+export const GetAllBPVitals = createAsyncThunk(
+    'patients/bp/vitals/getall',
+    async (details, thunkAPI) => {
+        const getAttempt = await patientService.getAllBPVitals()
+
+        if (getAttempt.type === 'success') {
+            return getAttempt
+        } else {
+            if (
+                getAttempt.message === 'jwt expired' ||
+                getAttempt.message === 'Not authenticated'
+            ) {
+                authService.logout()
+                return thunkAPI.rejectWithValue(getAttempt.message)
+            } else {
+                return thunkAPI.rejectWithValue(getAttempt.message)
+            }
+        }
+    }
+)
+
+export const GetAllBSVitals = createAsyncThunk(
+    'patients/bs/vitals/getall',
+    async (details, thunkAPI) => {
+        const getAttempt = await patientService.getAllBSVitals()
+
+        if (getAttempt.type === 'success') {
+            return getAttempt
+        } else {
+            if (
+                getAttempt.message === 'jwt expired' ||
+                getAttempt.message === 'Not authenticated'
+            ) {
+                authService.logout()
+                return thunkAPI.rejectWithValue(getAttempt.message)
+            } else {
+                return thunkAPI.rejectWithValue(getAttempt.message)
+            }
+        }
+    }
+)
+
+export const GetAllFAVitals = createAsyncThunk(
+    'patients/fa/vitals/getall',
+    async (details, thunkAPI) => {
+        const getAttempt = await patientService.getAllFAVitals()
+
+        if (getAttempt.type === 'success') {
+            return getAttempt
+        } else {
+            if (
+                getAttempt.message === 'jwt expired' ||
+                getAttempt.message === 'Not authenticated'
+            ) {
+                authService.logout()
+                return thunkAPI.rejectWithValue(getAttempt.message)
+            } else {
+                return thunkAPI.rejectWithValue(getAttempt.message)
+            }
+        }
+    }
+)
+
+export const GetAllEListVitals = createAsyncThunk(
+    'patients/elist/vitals/getall',
+    async (details, thunkAPI) => {
+        const getAttempt = await patientService.getAllElistVitals()
+
+        if (getAttempt.type === 'success') {
+            return getAttempt
+        } else {
+            if (
+                getAttempt.message === 'jwt expired' ||
+                getAttempt.message === 'Not authenticated'
+            ) {
+                authService.logout()
+                return thunkAPI.rejectWithValue(getAttempt.message)
+            } else {
+                return thunkAPI.rejectWithValue(getAttempt.message)
+            }
+        }
+    }
+)
+
+/** main vitals collection links */
+//recent vitals
+export const GetMainRecentVitals = createAsyncThunk(
+    'patients/main/vitals/getall',
+    async (details, thunkAPI) => {
+        const getAttempt = await patientService.getMainRecentVitals()
+
+        if (getAttempt.type === 'success') {
+            return getAttempt
+        } else {
+            if (
+                getAttempt.message === 'jwt expired' ||
+                getAttempt.message === 'Not authenticated'
+            ) {
+                authService.logout()
+                return thunkAPI.rejectWithValue(getAttempt.message)
+            } else {
+                return thunkAPI.rejectWithValue(getAttempt.message)
+            }
+        }
+    }
+)
+
+//main summary vitals
+export const GetMainSummaryVitals = createAsyncThunk(
+    'patients/main/summary/vitals',
+    async (details, thunkAPI) => {
+        const getAttempt = await patientService.getMainSummaryVitals()
+
+        if (getAttempt.type === 'success') {
+            return getAttempt
+        } else {
+            if (
+                getAttempt.message === 'jwt expired' ||
+                getAttempt.message === 'Not authenticated'
+            ) {
+                authService.logout()
+                return thunkAPI.rejectWithValue(getAttempt.message)
+            } else {
+                return thunkAPI.rejectWithValue(getAttempt.message)
+            }
+        }
+    }
+)
+
+//main monthly vitals summary
+export const GetMainMonthlySummaryVitals = createAsyncThunk(
+    'patients/main/monthly/summary/vitals',
+    async (details, thunkAPI) => {
+        const getAttempt = await patientService.getMainMonthlySummaryVitals()
+
+        if (getAttempt.type === 'success') {
+            return getAttempt
+        } else {
+            if (
+                getAttempt.message === 'jwt expired' ||
+                getAttempt.message === 'Not authenticated'
+            ) {
+                authService.logout()
+                return thunkAPI.rejectWithValue(getAttempt.message)
+            } else {
+                return thunkAPI.rejectWithValue(getAttempt.message)
+            }
+        }
+    }
+)
+
+/** dashboard main */
+/** dashboard reports */
+export const GetdashboardReports = createAsyncThunk(
+    'patients/dashboard/reports/summary',
+    async (details, thunkAPI) => {
+        const getAttempt = await patientService.getMainDashboardReports()
+
+        if (getAttempt.type === 'success') {
+            return getAttempt
+        } else {
+            if (
+                getAttempt.message === 'jwt expired' ||
+                getAttempt.message === 'Not authenticated'
+            ) {
+                authService.logout()
+                return thunkAPI.rejectWithValue(getAttempt.message)
+            } else {
+                return thunkAPI.rejectWithValue(getAttempt.message)
+            }
+        }
+    }
+)
+
+/** dashboard pie graph reports */
+export const GetdashboardPieGraph = createAsyncThunk(
+    'patients/dashboard/graph/pie',
+    async (details, thunkAPI) => {
+        const getAttempt = await patientService.getMaindashboardPieGraph()
+
+        if (getAttempt.type === 'success') {
+            return getAttempt
+        } else {
+            if (
+                getAttempt.message === 'jwt expired' ||
+                getAttempt.message === 'Not authenticated'
+            ) {
+                authService.logout()
+                return thunkAPI.rejectWithValue(getAttempt.message)
+            } else {
+                return thunkAPI.rejectWithValue(getAttempt.message)
+            }
+        }
+    }
+)
+
+/** dashboard bar graph reports */
+export const GetdashboardBarGraph = createAsyncThunk(
+    'patients/dashboard/graph/bars',
+    async (details, thunkAPI) => {
+        const getAttempt = await patientService.getMaindashboardBarGraph()
 
         if (getAttempt.type === 'success') {
             return getAttempt
@@ -311,6 +569,163 @@ export const patientSlice = createSlice({
                 state.individualPatient = action.payload
             })
             .addCase(GetIndividualPatient.rejected, (state, action) => {
+                state.isLoading = false
+                state.isError = true
+                state.message = action.payload
+            })
+
+            /** get all BP Vitals */
+            .addCase(GetAllBPVitals.pending, (state) => {
+                state.isLoading = true
+                state.message = ''
+            })
+            .addCase(GetAllBPVitals.fulfilled, (state, action) => {
+                state.isLoading = false
+                state.isSuccess = true
+                state.bpItems = action.payload
+            })
+            .addCase(GetAllBPVitals.rejected, (state, action) => {
+                state.isLoading = false
+                state.isError = true
+                state.message = action.payload
+            })
+            /** get all BS Vitals */
+            .addCase(GetAllBSVitals.pending, (state) => {
+                state.isLoading = true
+                state.message = ''
+            })
+            .addCase(GetAllBSVitals.fulfilled, (state, action) => {
+                state.isLoading = false
+                state.isSuccess = true
+                state.bsItems = action.payload
+            })
+            .addCase(GetAllBSVitals.rejected, (state, action) => {
+                state.isLoading = false
+                state.isError = true
+                state.message = action.payload
+            })
+
+            /** get all Fa vitals */
+            .addCase(GetAllFAVitals.pending, (state) => {
+                state.isLoading = true
+                state.message = ''
+            })
+            .addCase(GetAllFAVitals.fulfilled, (state, action) => {
+                state.isLoading = false
+                state.isSuccess = true
+                state.faItems = action.payload
+            })
+            .addCase(GetAllFAVitals.rejected, (state, action) => {
+                state.isLoading = false
+                state.isError = true
+                state.message = action.payload
+            })
+
+            /** get all Elists */
+            .addCase(GetAllEListVitals.pending, (state) => {
+                state.isLoading = true
+                state.message = ''
+            })
+            .addCase(GetAllEListVitals.fulfilled, (state, action) => {
+                state.isLoading = false
+                state.isSuccess = true
+                state.elistItems = action.payload
+            })
+            .addCase(GetAllEListVitals.rejected, (state, action) => {
+                state.isLoading = false
+                state.isError = true
+                state.message = action.payload
+            })
+            /** main vitals collections link */
+            /** get recent main vitals */
+            .addCase(GetMainRecentVitals.pending, (state) => {
+                state.isLoading = true
+                state.message = ''
+            })
+            .addCase(GetMainRecentVitals.fulfilled, (state, action) => {
+                state.isLoading = false
+                state.isSuccess = true
+                state.recentMainVitals = action.payload
+            })
+            .addCase(GetMainRecentVitals.rejected, (state, action) => {
+                state.isLoading = false
+                state.isError = true
+                state.message = action.payload
+            })
+            /** get main summary vitals */
+            .addCase(GetMainSummaryVitals.pending, (state) => {
+                state.isLoading = true
+                state.message = ''
+            })
+            .addCase(GetMainSummaryVitals.fulfilled, (state, action) => {
+                state.isLoading = false
+                state.isSuccess = true
+                state.mainVitalSummary = action.payload
+            })
+            .addCase(GetMainSummaryVitals.rejected, (state, action) => {
+                state.isLoading = false
+                state.isError = true
+                state.message = action.payload
+            })
+            /** get montlhy main summary vitals */
+            .addCase(GetMainMonthlySummaryVitals.pending, (state) => {
+                state.isLoading = true
+                state.message = ''
+            })
+            .addCase(GetMainMonthlySummaryVitals.fulfilled, (state, action) => {
+                state.isLoading = false
+                state.isSuccess = true
+                state.mainMonthlyVitalSummary = action.payload
+            })
+            .addCase(GetMainMonthlySummaryVitals.rejected, (state, action) => {
+                state.isLoading = false
+                state.isError = true
+                state.message = action.payload
+            })
+
+            /** get  main dashbord summary  */
+            .addCase(GetdashboardReports.pending, (state) => {
+                state.isLoading = true
+                state.message = ''
+            })
+            .addCase(GetdashboardReports.fulfilled, (state, action) => {
+                state.isLoading = false
+                state.isSuccess = true
+                state.dashboardReports = action.payload
+            })
+            .addCase(GetdashboardReports.rejected, (state, action) => {
+                state.isLoading = false
+                state.isError = true
+                state.message = action.payload
+            })
+
+            /** get dashbord pie data  */
+            .addCase(GetdashboardPieGraph.pending, (state) => {
+                state.isLoading = true
+                state.message = ''
+            })
+            .addCase(GetdashboardPieGraph.fulfilled, (state, action) => {
+                state.isLoading = false
+                state.isSuccess = true
+                state.dashboardPieReports = action.payload
+            })
+            .addCase(GetdashboardPieGraph.rejected, (state, action) => {
+                state.isLoading = false
+                state.isError = true
+                state.message = action.payload
+            })
+
+            /** get dashbord bar data  */
+            .addCase(GetdashboardBarGraph.pending, (state) => {
+                state.isLoading = true
+                state.message = ''
+            })
+            .addCase(GetdashboardBarGraph.fulfilled, (state, action) => {
+                state.isLoading = false
+                state.isSuccess = true
+                state.dashboardBarReports = action.payload
+            })
+            .addCase(GetdashboardBarGraph.rejected, (state, action) => {
                 state.isLoading = false
                 state.isError = true
                 state.message = action.payload

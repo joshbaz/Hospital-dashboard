@@ -1,12 +1,5 @@
 import React, { useEffect } from 'react'
-import {
-    Box,
-    Stack,
-    Text,
-    Input,
-    Button,
-    Switch,
-} from '@chakra-ui/react'
+import { Box, Stack, Text, Input, Button, Switch } from '@chakra-ui/react'
 import styled from 'styled-components'
 import TopBar from '../../../components/common/Navigation/TopBar'
 import Navigation from '../../../components/common/Navigation/Navigation'
@@ -15,11 +8,9 @@ import '@fontsource/open-sans'
 import '@fontsource/roboto'
 import { useNavigate } from 'react-router-dom'
 
-
 const Account = () => {
     let routeNavigate = useNavigate()
-   
-  
+
     return (
         <Container direction='row' w='100vw' spacing={'0px'}>
             <Box w='303px' position='relative'>
@@ -171,19 +162,6 @@ const Account = () => {
                                                 <Switch />
                                             </Box>
                                             <Text className='switch_text'>
-                                                Email me when someone logs into
-                                                dashboard
-                                            </Text>
-                                        </Stack>
-
-                                        <Stack
-                                            direction='row'
-                                            alignItems='center'
-                                            spacing='15px'>
-                                            <Box>
-                                                <Switch />
-                                            </Box>
-                                            <Text className='switch_text'>
                                                 Email me when a patient has an
                                                 emergency
                                             </Text>
@@ -210,17 +188,7 @@ const Account = () => {
                                             </Text>
                                         </Stack>
 
-                                        <Stack
-                                            direction='row'
-                                            alignItems='center'
-                                            spacing='15px'>
-                                            <Box>
-                                                <Switch />
-                                            </Box>
-                                            <Text className='switch_text'>
-                                                Monthly data updates
-                                            </Text>
-                                        </Stack>
+                                       
                                     </Stack>
                                 </Stack>
                             </InputDetailContainer>

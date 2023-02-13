@@ -1,10 +1,5 @@
 import React, { useEffect } from 'react'
-import {
-    Box,
-    Stack,
-    Text,
-  
-} from '@chakra-ui/react'
+import { Box, Stack, Text, useToast } from '@chakra-ui/react'
 import styled from 'styled-components'
 import TopBar from '../../../components/common/Navigation/TopBar'
 import Navigation from '../../../components/common/Navigation/Navigation'
@@ -20,7 +15,57 @@ import { Icon } from '@iconify/react'
 import '@fontsource/open-sans'
 import '@fontsource/roboto'
 
+import {
+    GetdashboardReports,
+    GetdashboardPieGraph,
+    GetdashboardBarGraph,
+    reset,
+} from '../../store/features/patients/patientSlice'
+import { useDispatch, useSelector } from 'react-redux'
+
 const Overview = () => {
+    let dispatch = useDispatch()
+    let toast = useToast()
+    const [pieData, setPieData] = React.useState([])
+    const [barData, setBarData] = React.useState([])
+
+    React.useEffect(() => {
+        dispatch(GetdashboardReports())
+        dispatch(GetdashboardPieGraph())
+        dispatch(GetdashboardBarGraph())
+    }, [dispatch])
+
+    const {
+        isError,
+        isSuccess,
+        message,
+        dashboardReports,
+        dashboardPieReports,
+        dashboardBarReports,
+    } = useSelector((state) => state.patient)
+
+    React.useEffect(() => {
+        if (isError) {
+            toast({
+                position: 'top',
+                title: message,
+                status: 'error',
+                duration: 10000,
+                isClosable: true,
+            })
+            dispatch(reset())
+        }
+
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isError, isSuccess, message, dispatch])
+
+    React.useEffect(() => {
+        setPieData(() => dashboardPieReports.reports)
+    }, [dashboardPieReports.reports])
+
+    React.useEffect(() => {
+        setBarData(() => dashboardBarReports.reports)
+    }, [dashboardBarReports.reports])
     return (
         <Container direction='row' w='100vw' spacing={'0px'}>
             <Box w='303px' position='relative'>
@@ -69,7 +114,10 @@ const Overview = () => {
                                     </Stack>
 
                                     <Stack spacing='15px'>
-                                        <Text className='lstat_val'>120</Text>
+                                        <Text className='lstat_val'>
+                                            {' '}
+                                            {dashboardReports.Patients}
+                                        </Text>
 
                                         <Text className='lstat_duration'>
                                             Last 7 days
@@ -98,7 +146,10 @@ const Overview = () => {
                                     </Stack>
 
                                     <Stack spacing='15px'>
-                                        <Text className='lstat_val'>120</Text>
+                                        <Text className='lstat_val'>
+                                            {' '}
+                                            {dashboardReports.BloodReports}
+                                        </Text>
 
                                         <Text className='lstat_duration'>
                                             Last 7 days
@@ -132,7 +183,10 @@ const Overview = () => {
                                     </Stack>
 
                                     <Stack spacing='15px'>
-                                        <Text className='lstat_val'>120</Text>
+                                        <Text className='lstat_val'>
+                                            {' '}
+                                            {dashboardReports.FitnessReports}
+                                        </Text>
 
                                         <Text className='lstat_duration'>
                                             Last 7 days
@@ -161,7 +215,10 @@ const Overview = () => {
                                     </Stack>
 
                                     <Stack spacing='15px'>
-                                        <Text className='lstat_val'>120</Text>
+                                        <Text className='lstat_val'>
+                                            {' '}
+                                            {dashboardReports.EmergencyList}
+                                        </Text>
 
                                         <Text className='lstat_duration'>
                                             Last 7 days
@@ -192,18 +249,7 @@ const Overview = () => {
                                             standalone={false}
                                             width={550}
                                             height={550}
-                                            data={[
-                                                {
-                                                    x: 'Blood Pressure',
-                                                    y: 70,
-                                                    highest: 'true',
-                                                },
-                                                { x: 'Blood Sugar', y: 40 },
-                                                {
-                                                    x: 'Fitness',
-                                                    y: 55,
-                                                },
-                                            ]}
+                                            data={pieData}
                                             innerRadius={({ datum }) =>
                                                 datum.x === 'Blood Pressure'
                                                     ? 150
@@ -276,7 +322,11 @@ const Overview = () => {
                                                     paddingBottom: '80px',
                                                 },
                                             ]}
-                                            text={['Overall', ' ', '234']}
+                                            text={[
+                                                'Overall',
+                                                ' ',
+                                                `${dashboardPieReports.overallTotal}`,
+                                            ]}
                                         />
                                     </svg>
                                 </Stack>
@@ -322,7 +372,7 @@ const Overview = () => {
                                             </Text>
                                         </Stack>
                                         <Text className='legendCard_fig'>
-                                            30%
+                                            {dashboardPieReports.BloodPReports}%
                                         </Text>
                                     </LegendCardWrap>
                                     <LegendCardWrap h='56px'>
@@ -338,7 +388,7 @@ const Overview = () => {
                                             </Text>
                                         </Stack>
                                         <Text className='legendCard_fig'>
-                                            15%
+                                            {dashboardPieReports.BloodSReports}%
                                         </Text>
                                     </LegendCardWrap>
                                     <LegendCardWrap h='56px'>
@@ -354,7 +404,8 @@ const Overview = () => {
                                             </Text>
                                         </Stack>
                                         <Text className='legendCard_fig'>
-                                            25%
+                                            {dashboardPieReports.FitnessReports}
+                                            %
                                         </Text>
                                     </LegendCardWrap>
                                 </Stack>
@@ -430,20 +481,7 @@ const Overview = () => {
                                                     fill: '#e1e4e8',
                                                 },
                                             }}
-                                            data={[
-                                                { x: 'Jan', y: 10 },
-                                                { x: 'Feb', y: 25 },
-                                                { x: 'Mar', y: 40 },
-                                                { x: 'Apr', y: 50 },
-                                                { x: 'May', y: 10 },
-                                                { x: 'Jun', y: 10 },
-                                                { x: 'July', y: 10 },
-                                                { x: 'Aug', y: 10 },
-                                                { x: 'Sept', y: 10 },
-                                                { x: 'Oct', y: 10 },
-                                                { x: 'Nov', y: 10 },
-                                                { x: 'Dec', y: 10 },
-                                            ]}
+                                            data={barData}
                                             alignment='middle'
                                         />
                                         <VictoryAxis
@@ -539,11 +577,22 @@ const Overview = () => {
                                             direction='row'
                                             alignItems={'center'}>
                                             <Text className='bstat_val'>
-                                                120
+                                                {
+                                                    dashboardBarReports.CurrentTotal
+                                                }
                                             </Text>
 
-                                            <Text className='bstat_percent'>
-                                                -14%
+                                            <Text
+                                                className={`bstat_percent ${
+                                                    dashboardBarReports.PatientPercent <
+                                                    0
+                                                        ? 'decline'
+                                                        : 'rise'
+                                                }`}>
+                                                {
+                                                    dashboardBarReports.PatientPercent
+                                                }
+                                                %
                                             </Text>
                                         </Stack>
                                     </Stack>
@@ -802,5 +851,25 @@ const BarStatCard = styled(Stack)`
             ),
             #f03738;
         border-radius: 24px;
+    }
+
+    .decline {
+        background: linear-gradient(
+                0deg,
+                rgba(255, 255, 255, 0.75),
+                rgba(255, 255, 255, 0.75)
+            ),
+            #f03738;
+        color: #b4292a;
+    }
+
+    .rise {
+        background: linear-gradient(
+                0deg,
+                rgba(255, 255, 255, 0.75),
+                rgba(255, 255, 255, 0.75)
+            ),
+            #3cc13b;
+        color: #2d912c;
     }
 `
