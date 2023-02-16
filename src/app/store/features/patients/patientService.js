@@ -19,7 +19,6 @@ let errorFunction = (error) => {
     return response
 }
 
-
 //let getToken = Cookies.get('_tk')
 
 //Creation of patient
@@ -70,7 +69,6 @@ const createPrescription = async (details) => {
     }
 }
 
-
 //edit of patient prescription
 const editPrescription = async (details) => {
     try {
@@ -95,35 +93,11 @@ const editPrescription = async (details) => {
     }
 }
 
-//create of patient refill
-const createRefill = async (details) => {
-    try {
-         let getToken = Cookies.get('_tk')
-        const response = await axios.put(
-            `${BASE_API_}/patient/v1/prescription/refill/create/${details._id}`,
-            details,
-            {
-                headers: {
-                    Authorization: 'Brearer ' + getToken,
-                },
-            }
-        )
-
-        return {
-            message: response.data,
-            type: 'success',
-        }
-    } catch (error) {
-        let errorResult = errorFunction(error)
-        return errorResult
-    }
-}
-
 //get all patients
 const getAllPatients = async () => {
     try {
         let getToken = Cookies.get('_tk')
-        
+
         const response = await axios.get(`${BASE_API_}/patient/v1/all`, {
             headers: {
                 Authorization: 'Brearer ' + getToken,
@@ -371,7 +345,6 @@ const getMainMonthlySummaryVitals = async () => {
         return errorResult
     }
 }
-
 
 /** main dashboard summary */
 const getMainDashboardReports = async () => {

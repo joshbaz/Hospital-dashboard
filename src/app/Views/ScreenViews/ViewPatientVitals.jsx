@@ -3,7 +3,6 @@ import {
     Box,
     Stack,
     Text,
-    Button,
     Table,
     Thead,
     Tr,
@@ -19,7 +18,7 @@ import Navigation from '../../../components/common/Navigation/Navigation'
 import { Icon } from '@iconify/react'
 import '@fontsource/open-sans'
 import '@fontsource/roboto'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 import {
     GetIndividualVitalSummary,
     GetIndividualPatient,
@@ -42,13 +41,12 @@ const TableHeadNewData = [
     },
 ]
 
-
-
 const ViewPatientVitals = () => {
     let params = useParams()
     let toast = useToast()
     let dispatch = useDispatch()
 
+    // eslint-disable-next-line no-unused-vars
     const [perPage, setPerPage] = React.useState(10)
     const [allDisplayData, setAllDisplayData] = React.useState({
         items: [],
@@ -119,6 +117,7 @@ const ViewPatientVitals = () => {
             totalAllItems: allQueriedItems.length,
             totalPages: pageLength,
         })
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [individualPatient.vitals])
 
     const handlePrev = () => {
@@ -666,8 +665,6 @@ const Container = styled(Stack)`
     }
 `
 
-const SearchContainer = styled(Stack)``
-
 const TableHeadWrapper = styled(Stack)`
     justify-content: space-between;
     align-items: center;
@@ -717,16 +714,6 @@ const SelectorDropDown = styled(Stack)`
         height: 100%;
         border-left: 1px solid #92979d;
     }
-`
-
-const NewButton = styled(Button)`
-    background: #3e66fb !important;
-    border-radius: 8px !important;
-    font-family: 'Open Sans', sans-serif !important;
-    font-weight: 600 !important;
-    font-size: 12px !important;
-    line-height: 16px;
-    color: #ffffff;
 `
 
 const TableContainer = styled(Box)`
@@ -792,36 +779,6 @@ const NoItems = styled(Box)`
     font-style: normal;
     font-weight: 500;
     font-size: 14px;
-`
-
-const ViewButton = styled(Stack)`
-    width: 150px;
-    height: 32px;
-    background: #ffffff;
-    cursor: pointer;
-    padding: 8px 16px;
-    border-radius: 8px;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid #92979d;
-    .viewbutton_text {
-        font-family: 'Open Sans', sans-serif;
-
-        color: #616569;
-        font-weight: 600;
-        font-size: 12px;
-        line-height: 16px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        height: 100%;
-    }
-    .viewbutton_icon {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        height: 100%;
-    }
 `
 
 const PaginationStack = styled(Stack)`
@@ -936,30 +893,6 @@ const SummaryContainer = styled(Stack)`
             ),
             #3cc13b;
         color: #2d912c;
-    }
-`
-
-const InputDetailContainer = styled(Stack)`
-    background: #fff;
-    padding: 28px 29px;
-    border-radius: 10px;
-`
-
-const InputWrapper = styled(Stack)`
-    label {
-        font-family: 'Open Sans', sans-serif;
-        font-weight: 600;
-        font-size: 12px;
-        line-height: 16px;
-        color: #16191c;
-    }
-
-    input {
-        font-family: 'Open Sans', sans-serif;
-        font-weight: 400;
-        font-size: 14px;
-        line-height: 20px;
-        color: #16191c;
     }
 `
 

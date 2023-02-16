@@ -4,7 +4,6 @@ import {
     Stack,
     Text,
     Input,
-    Button,
     Table,
     Thead,
     Tr,
@@ -604,7 +603,7 @@ const ViewPatient = () => {
                                         0 ? (
                                             <>
                                                 {individualPatient.prescription.map(
-                                                    (data, index) => {
+                                                    (data) => {
                                                         return (
                                                             <Tr
                                                                 className={`table_row `}
@@ -776,8 +775,6 @@ const Container = styled(Stack)`
     }
 `
 
-const SearchContainer = styled(Stack)``
-
 const TableHeadWrapper = styled(Stack)`
     justify-content: space-between;
     align-items: center;
@@ -827,16 +824,6 @@ const SelectorDropDown = styled(Stack)`
         height: 100%;
         border-left: 1px solid #92979d;
     }
-`
-
-const NewButton = styled(Button)`
-    background: #3e66fb !important;
-    border-radius: 8px !important;
-    font-family: 'Open Sans', sans-serif !important;
-    font-weight: 600 !important;
-    font-size: 12px !important;
-    line-height: 16px;
-    color: #ffffff;
 `
 
 const TableContainer = styled(Box)`
@@ -931,67 +918,6 @@ const ViewButton = styled(Stack)`
         align-items: center;
         justify-content: center;
         height: 100%;
-    }
-`
-
-const PaginationStack = styled(Stack)`
-    width: 100%;
-    padding: 0 10px;
-    .pagination {
-        color: #6b7280;
-        align-items: center;
-        justify-content: flex-end;
-
-        background: transparent;
-    }
-    .pages {
-        font-family: 'Roboto', sans-serif;
-        font-style: normal;
-        font-weight: normal;
-        font-size: 12px;
-        line-height: 166%;
-        color: #111827;
-    }
-
-    .rows {
-        display: flex;
-        align-items: center;
-        h1 {
-            font-family: 'Roboto', sans-serif;
-            font-style: normal;
-            font-weight: normal;
-            font-size: 12px;
-            line-height: 166%;
-        }
-        span {
-            margin-left: 2px;
-            font-family: 'Roboto', sans-serif;
-            font-style: normal;
-            font-weight: normal;
-            font-size: 12px;
-            line-height: 19px;
-
-            letter-spacing: 0.3px;
-            color: #111827;
-        }
-    }
-
-    .arrows {
-        width: 88px;
-        display: flex;
-        justify-content: space-between;
-
-        .left,
-        .right {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            width: 40px;
-            font-size: 20px;
-            cursor: pointer;
-            box-shadow: 0px 0px 0px 1px rgba(70, 79, 96, 0.2);
-            border-radius: 6px;
-        }
     }
 `
 

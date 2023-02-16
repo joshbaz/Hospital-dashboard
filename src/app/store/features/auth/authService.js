@@ -44,9 +44,109 @@ const logout = async () => {
     Cookies.remove('user')
 }
 
+//get all patients
+const getAllDetails = async () => {
+    try {
+        let getToken = Cookies.get('_tk')
+
+        const response = await axios.get(`${BASE_API_}/admin/v1/details`, {
+            headers: {
+                Authorization: 'Brearer ' + getToken,
+            },
+        })
+
+        return {
+            ...response.data,
+            type: 'success',
+        }
+    } catch (error) {
+        let errorResult = errorFunction(error)
+        return errorResult
+    }
+}
+
+//update details
+const updateDetails = async (userDetails) => {
+    try {
+        let getToken = Cookies.get('_tk')
+
+        const response = await axios.put(
+            `${BASE_API_}/admin/v1/update/details`,
+            userDetails,
+            {
+                headers: {
+                    Authorization: 'Brearer ' + getToken,
+                },
+            }
+        )
+
+        return {
+            message: response.data,
+            type: 'success',
+        }
+    } catch (error) {
+        let errorResult = errorFunction(error)
+        return errorResult
+    }
+}
+
+//update settings
+const updateSettings = async (userDetails) => {
+    try {
+        let getToken = Cookies.get('_tk')
+
+        const response = await axios.put(
+            `${BASE_API_}/admin/v1/update/settings`,
+            userDetails,
+            {
+                headers: {
+                    Authorization: 'Brearer ' + getToken,
+                },
+            }
+        )
+
+        return {
+            message: response.data,
+            type: 'success',
+        }
+    } catch (error) {
+        let errorResult = errorFunction(error)
+        return errorResult
+    }
+}
+
+//update passkey
+const updatePasskey = async (userDetails) => {
+    try {
+        let getToken = Cookies.get('_tk')
+
+        const response = await axios.put(
+            `${BASE_API_}/admin/v1/update/passkey`,
+            userDetails,
+            {
+                headers: {
+                    Authorization: 'Brearer ' + getToken,
+                },
+            }
+        )
+
+        return {
+            message: response.data,
+            type: 'success',
+        }
+    } catch (error) {
+        let errorResult = errorFunction(error)
+        return errorResult
+    }
+}
+
 const authService = {
     Login,
     logout,
+    getAllDetails,
+    updatePasskey,
+    updateSettings,
+    updateDetails,
 }
 
 export default authService

@@ -29,7 +29,7 @@ import Navigation from '../../../components/common/Navigation/Navigation'
 import { Icon } from '@iconify/react'
 import '@fontsource/open-sans'
 import '@fontsource/roboto'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 import {
     GetIndividualPrescriptionSummary,
     GetIndividualPatient,
@@ -75,6 +75,7 @@ const ViewPatientPrescription = () => {
     const [helperFunctions, setHelperFunctions] = React.useState(null)
     const [isSubmittingp, setIsSubmittingp] = React.useState(false)
     const [createPrescription, setCreatePrescription] = React.useState(false)
+    // eslint-disable-next-line no-unused-vars
     const [perPage, setPerPage] = React.useState(10)
     const [allDisplayData, setAllDisplayData] = React.useState({
         items: [],
@@ -190,6 +191,7 @@ const ViewPatientPrescription = () => {
             totalAllItems: allQueriedItems.length,
             totalPages: pageLength,
         })
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [individualPatient.prescription])
 
     const handlePrev = () => {
@@ -924,40 +926,44 @@ const ViewPatientPrescription = () => {
                                                                         '15px'
                                                                     }
                                                                     alignItems='center'>
-                                                                    <Switch
-                                                                        colorScheme='teal'
-                                                                        size='md'
-                                                                        isChecked={
-                                                                            values.active ===
-                                                                            'false'
-                                                                                ? false
-                                                                                : true
-                                                                        }
-                                                                        onChange={(
-                                                                            e
-                                                                        ) => {
-                                                                            let checked =
+                                                                    <Box>
+                                                                        <Switch
+                                                                            colorScheme='teal'
+                                                                            isChecked={
+                                                                                values.active ===
+                                                                                'false'
+                                                                                    ? false
+                                                                                    : true
+                                                                            }
+                                                                            onChange={(
                                                                                 e
-                                                                                    .target
-                                                                                    .checked ===
-                                                                                true
-                                                                                    ? 'true'
-                                                                                    : 'false'
+                                                                            ) => {
+                                                                                let checked =
+                                                                                    e
+                                                                                        .target
+                                                                                        .checked ===
+                                                                                    true
+                                                                                        ? 'true'
+                                                                                        : 'false'
 
-                                                                            setFieldValue(
-                                                                                'active',
-                                                                                checked
-                                                                            )
-                                                                        }}
-                                                                    />
-                                                                    <Text className='toggleText'>
-                                                                        Change
-                                                                        toggle
-                                                                        if this
-                                                                        prescription
-                                                                        is
-                                                                        recurring
-                                                                    </Text>
+                                                                                setFieldValue(
+                                                                                    'active',
+                                                                                    checked
+                                                                                )
+                                                                            }}
+                                                                        />
+                                                                    </Box>
+                                                                    <Box>
+                                                                        <Text className='toggleText'>
+                                                                            Change
+                                                                            toggle
+                                                                            if
+                                                                            this
+                                                                            prescription
+                                                                            is
+                                                                            recurring
+                                                                        </Text>
+                                                                    </Box>
                                                                 </Stack>
                                                             </Box>
                                                         </Stack>
@@ -1340,8 +1346,6 @@ const Container = styled(Stack)`
     }
 `
 
-const SearchContainer = styled(Stack)``
-
 const TableHeadWrapper = styled(Stack)`
     justify-content: space-between;
     align-items: center;
@@ -1610,30 +1614,6 @@ const SummaryContainer = styled(Stack)`
             ),
             #3cc13b;
         color: #2d912c;
-    }
-`
-
-const InputDetailContainer = styled(Stack)`
-    background: #fff;
-    padding: 28px 29px;
-    border-radius: 10px;
-`
-
-const InputWrapper = styled(Stack)`
-    label {
-        font-family: 'Open Sans', sans-serif;
-        font-weight: 600;
-        font-size: 12px;
-        line-height: 16px;
-        color: #16191c;
-    }
-
-    input {
-        font-family: 'Open Sans', sans-serif;
-        font-weight: 400;
-        font-size: 14px;
-        line-height: 20px;
-        color: #16191c;
     }
 `
 

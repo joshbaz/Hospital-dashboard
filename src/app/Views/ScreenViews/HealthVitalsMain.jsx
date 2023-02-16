@@ -3,7 +3,6 @@ import {
     Box,
     Stack,
     Text,
-    Button,
     Table,
     Thead,
     Tr,
@@ -93,13 +92,6 @@ const HealthVitalsMain = () => {
         setGraphData(() => mainMonthlyVitalSummary.stats)
     }, [mainMonthlyVitalSummary.stats])
 
-    // const temperatures = data.map(({ y }) => y)
-    // const min = Math.min(...temperatures)
-    // const max = Math.max(...temperatures)
-
-    // const ScatterPoint = ({ x, y, datum, min, max }) => {
-    //     return <StyledPoint cx={x} cy={y} r={8} innerRadius={50} />
-    // }
     return (
         <Container direction='row' w='100vw' spacing={'0px'}>
             <Box w='303px' position='relative'>
@@ -206,31 +198,6 @@ const HealthVitalsMain = () => {
                                         }}
                                         size={5}
                                     />
-                                    {/** 
-                                
-                                <VictoryLine
-                                        style={{
-                                            data: {
-                                                fill: '#f6f7f8',
-                                            },
-                                        }}
-                                        data={[
-                                            { x: 'Jan', y: 10 },
-                                            { x: 'Feb', y: 25 },
-                                            { x: 'Mar', y: 40 },
-                                            { x: 'Apr', y: 50 },
-                                            { x: 'May', y: 60 },
-                                            { x: 'Jun', y: 50 },
-                                            { x: 'July', y: 70 },
-                                            { x: 'Aug', y: 40 },
-                                            { x: 'Sept', y: 50 },
-                                            { x: 'Oct', y: 30 },
-                                            { x: 'Nov', y: 60 },
-                                            { x: 'Dec', y: 18 },
-                                        ]}
-                                        alignment='middle'
-                                    />
-                                */}
 
                                     <VictoryAxis
                                         style={{
@@ -685,8 +652,6 @@ const Container = styled(Stack)`
     }
 `
 
-const SearchContainer = styled(Stack)``
-
 const TableHeadWrapper = styled(Stack)`
     justify-content: space-between;
     align-items: center;
@@ -736,16 +701,6 @@ const SelectorDropDown = styled(Stack)`
         height: 100%;
         border-left: 1px solid #92979d;
     }
-`
-
-const NewButton = styled(Button)`
-    background: #3e66fb !important;
-    border-radius: 8px !important;
-    font-family: 'Open Sans', sans-serif !important;
-    font-weight: 600 !important;
-    font-size: 12px !important;
-    line-height: 16px;
-    color: #ffffff;
 `
 
 const TableContainer = styled(Box)`
@@ -813,97 +768,6 @@ const NoItems = styled(Box)`
     font-size: 14px;
 `
 
-const ViewButton = styled(Stack)`
-    width: 150px;
-    height: 32px;
-    background: #ffffff;
-    cursor: pointer;
-    padding: 8px 16px;
-    border-radius: 8px;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid #92979d;
-    .viewbutton_text {
-        font-family: 'Open Sans', sans-serif;
-
-        color: #616569;
-        font-weight: 600;
-        font-size: 12px;
-        line-height: 16px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        height: 100%;
-    }
-    .viewbutton_icon {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        height: 100%;
-    }
-`
-
-const PaginationStack = styled(Stack)`
-    width: 100%;
-    padding: 0 10px;
-    .pagination {
-        color: #6b7280;
-        align-items: center;
-        justify-content: flex-end;
-
-        background: transparent;
-    }
-    .pages {
-        font-family: 'Roboto', sans-serif;
-        font-style: normal;
-        font-weight: normal;
-        font-size: 12px;
-        line-height: 166%;
-        color: #111827;
-    }
-
-    .rows {
-        display: flex;
-        align-items: center;
-        h1 {
-            font-family: 'Roboto', sans-serif;
-            font-style: normal;
-            font-weight: normal;
-            font-size: 12px;
-            line-height: 166%;
-        }
-        span {
-            margin-left: 2px;
-            font-family: 'Roboto', sans-serif;
-            font-style: normal;
-            font-weight: normal;
-            font-size: 12px;
-            line-height: 19px;
-
-            letter-spacing: 0.3px;
-            color: #111827;
-        }
-    }
-
-    .arrows {
-        width: 88px;
-        display: flex;
-        justify-content: space-between;
-
-        .left,
-        .right {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            width: 40px;
-            font-size: 20px;
-            cursor: pointer;
-            box-shadow: 0px 0px 0px 1px rgba(70, 79, 96, 0.2);
-            border-radius: 6px;
-        }
-    }
-`
-
 const SummaryContainer = styled(Stack)`
     background: #ffffff;
     border: 1.30758px solid rgba(22, 25, 28, 0.1);
@@ -967,52 +831,8 @@ const SummaryContainer = styled(Stack)`
     }
 `
 
-const InputDetailContainer = styled(Stack)`
-    background: #fff;
-    padding: 28px 29px;
-    border-radius: 10px;
-`
-
-const InputWrapper = styled(Stack)`
-    label {
-        font-family: 'Open Sans', sans-serif;
-        font-weight: 600;
-        font-size: 12px;
-        line-height: 16px;
-        color: #16191c;
-    }
-
-    input {
-        font-family: 'Open Sans', sans-serif;
-        font-weight: 400;
-        font-size: 14px;
-        line-height: 20px;
-        color: #16191c;
-    }
-`
-
-const LinkToolsWrap = styled(Stack)`
-    p {
-        font-family: 'Open Sans';
-        font-style: normal;
-        font-weight: 400;
-        font-size: 14px;
-        line-height: 16px;
-        color: #92979d;
-    }
-
-    .current {
-        color: #1f2225;
-        font-weight: 600;
-    }
-`
-
 const GraphContainer = styled(Stack)`
     background: #ffffff;
     border-radius: 10px;
     padding: 35px 41px;
-`
-
-const StyledPoint = styled.circle`
-    fill: red;
 `

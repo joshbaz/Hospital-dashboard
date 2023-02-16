@@ -11,6 +11,7 @@ const initialState = {
     isSuccess: false,
     isLoading: false,
     message: '',
+    userdetails: null,
 }
 
 export const Login = createAsyncThunk(
@@ -30,6 +31,65 @@ export const Login = createAsyncThunk(
 export const Logout = createAsyncThunk('auth/logout', async () => {
     authService.logout()
 })
+
+export const GetUserDetails = createAsyncThunk(
+    'auth/details',
+    async (userDetails, thunkAPI) => {
+        const getAttempt = await authService.getAllDetails(userDetails)
+
+        if (getAttempt.type === 'success') {
+            return getAttempt
+        } else {
+            console.log('error message', getAttempt.message)
+            return thunkAPI.rejectWithValue(getAttempt.message)
+        }
+    }
+)
+
+//update details
+export const UpdateDetails = createAsyncThunk(
+    'auth/update/details',
+    async (userDetails, thunkAPI) => {
+        const getAttempt = await authService.updateDetails(userDetails)
+
+        if (getAttempt.type === 'success') {
+            return getAttempt
+        } else {
+            console.log('error message', getAttempt.message)
+            return thunkAPI.rejectWithValue(getAttempt.message)
+        }
+    }
+)
+
+//update settings
+export const UpdateSettings = createAsyncThunk(
+    'auth/update/settings',
+    async (userDetails, thunkAPI) => {
+        const getAttempt = await authService.updateSettings(userDetails)
+
+        if (getAttempt.type === 'success') {
+            return getAttempt
+        } else {
+            console.log('error message', getAttempt.message)
+            return thunkAPI.rejectWithValue(getAttempt.message)
+        }
+    }
+)
+
+//update passkey
+export const UpdatePasskey = createAsyncThunk(
+    'auth/update/passkey',
+    async (userDetails, thunkAPI) => {
+        const getAttempt = await authService.updatePasskey(userDetails)
+
+        if (getAttempt.type === 'success') {
+            return getAttempt
+        } else {
+            console.log('error message', getAttempt.message)
+            return thunkAPI.rejectWithValue(getAttempt.message)
+        }
+    }
+)
 
 export const authSlice = createSlice({
     name: 'auth',
@@ -62,6 +122,63 @@ export const authSlice = createSlice({
                 state.user = null
                 state.isSuccess = false
                 state.message = 'logout success'
+            })
+            /** get all details */
+            .addCase(GetUserDetails.pending, (state) => {
+                state.isLoading = true
+            })
+            .addCase(GetUserDetails.fulfilled, (state, action) => {
+                state.isLoading = false
+                state.isSuccess = true
+                state.userdetails = action.payload
+            })
+            .addCase(GetUserDetails.rejected, (state, action) => {
+                state.isLoading = false
+                state.isError = true
+                state.message = action.payload
+            })
+            /** update details */
+            .addCase(UpdateDetails.pending, (state) => {
+                state.isLoading = true
+            })
+            .addCase(UpdateDetails.fulfilled, (state, action) => {
+                state.isLoading = false
+                state.isSuccess = true
+                state.message = action.payload
+            })
+            .addCase(UpdateDetails.rejected, (state, action) => {
+                state.isLoading = false
+                state.isError = true
+                state.message = action.payload
+            })
+            /** update settings */
+            .addCase(UpdateSettings.pending, (state) => {
+                state.isLoading = true
+            })
+            .addCase(UpdateSettings.fulfilled, (state, action) => {
+                state.isLoading = false
+                state.isSuccess = true
+                state.message = action.payload
+            })
+            .addCase(UpdateSettings.rejected, (state, action) => {
+                state.isLoading = false
+                state.isError = true
+                state.message = action.payload
+            })
+
+            /** update passkey */
+            .addCase(UpdatePasskey.pending, (state) => {
+                state.isLoading = true
+            })
+            .addCase(UpdatePasskey.fulfilled, (state, action) => {
+                state.isLoading = false
+                state.isSuccess = true
+                state.message = action.payload
+            })
+            .addCase(UpdatePasskey.rejected, (state, action) => {
+                state.isLoading = false
+                state.isError = true
+                state.message = action.payload
             })
     },
 })

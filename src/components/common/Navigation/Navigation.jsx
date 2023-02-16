@@ -1,6 +1,7 @@
+/* eslint-disable array-callback-return */
 import React from 'react'
 import styled from 'styled-components'
-import { Box, Stack, Tooltip, Text } from '@chakra-ui/react'
+import { Box, Stack,  Text } from '@chakra-ui/react'
 import Logo from '../../../assets/logo.png'
 import { NavLink, useLocation } from 'react-router-dom'
 import { Icon } from '@iconify/react'

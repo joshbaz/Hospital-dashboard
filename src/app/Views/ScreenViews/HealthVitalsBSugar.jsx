@@ -6,7 +6,6 @@ import {
     Input,
     InputGroup,
     InputLeftElement,
-    Button,
     Table,
     Thead,
     Tr,
@@ -54,6 +53,7 @@ const HealthVitalsBSugar = () => {
     let toast = useToast()
     const [searchActive, setSearchActive] = React.useState(false)
     const [searchValue, setSearchValue] = React.useState('')
+    // eslint-disable-next-line no-unused-vars
     const [perPage, setPerPage] = React.useState(10)
     const [allDisplayData, setAllDisplayData] = React.useState({
         items: [],
@@ -80,7 +80,7 @@ const HealthVitalsBSugar = () => {
 
     React.useEffect(() => {
         dispatch(GetAllBSVitals())
-    }, [])
+    }, [dispatch])
 
     React.useEffect(() => {
         if (isError) {
@@ -128,10 +128,12 @@ const HealthVitalsBSugar = () => {
             totalAllItems: allQueriedItems.length,
             totalPages: pageLength,
         })
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [bsItems])
 
     /** paginate search */
     React.useEffect(() => {
+        // eslint-disable-next-line array-callback-return
         const searchResults = allDisplayData.allItems.filter((data) => {
             let serachedValue = searchValue
                 ? searchValue.toLowerCase()
@@ -173,6 +175,7 @@ const HealthVitalsBSugar = () => {
             totalAllItems: searchResults.length,
             totalPages: pageLength,
         })
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [searchValue])
 
     //handle previous button
@@ -266,8 +269,6 @@ const HealthVitalsBSugar = () => {
     }
 
     const handleSearchInput = (e) => {
-        console.log(e.target.value, 'values')
-
         setSearchValue(() => e.target.value)
 
         if (e.target.value) {
@@ -929,16 +930,6 @@ const SelectorDropDown = styled(Stack)`
     }
 `
 
-const NewButton = styled(Button)`
-    background: #3e66fb !important;
-    border-radius: 8px !important;
-    font-family: 'Open Sans', sans-serif !important;
-    font-weight: 600 !important;
-    font-size: 12px !important;
-    line-height: 16px;
-    color: #ffffff;
-`
-
 const TableContainer = styled(Box)`
     table {
         background: #ffffff;
@@ -1004,36 +995,6 @@ const NoItems = styled(Box)`
     font-size: 14px;
 `
 
-const ViewButton = styled(Stack)`
-    width: 150px;
-    height: 32px;
-    background: #ffffff;
-    cursor: pointer;
-    padding: 8px 16px;
-    border-radius: 8px;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid #92979d;
-    .viewbutton_text {
-        font-family: 'Open Sans', sans-serif;
-
-        color: #616569;
-        font-weight: 600;
-        font-size: 12px;
-        line-height: 16px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        height: 100%;
-    }
-    .viewbutton_icon {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        height: 100%;
-    }
-`
-
 const PaginationStack = styled(Stack)`
     width: 100%;
     padding: 0 10px;
@@ -1092,99 +1053,5 @@ const PaginationStack = styled(Stack)`
             box-shadow: 0px 0px 0px 1px rgba(70, 79, 96, 0.2);
             border-radius: 6px;
         }
-    }
-`
-
-const SummaryContainer = styled(Stack)`
-    background: #ffffff;
-    border: 1.30758px solid rgba(22, 25, 28, 0.1);
-    border-radius: 10.4607px;
-    height: 147px;
-    width: 25%;
-    padding: 21px 0 21px 30px;
-
-    .sum_text {
-        font-family: 'Roboto', sans-serif;
-        font-weight: 400;
-        font-size: 20px;
-        line-height: 25px;
-        color: #616569;
-    }
-    .sum_fig {
-        font-family: 'Roboto', sans-serif;
-        font-weight: 400;
-        font-size: 30px;
-        line-height: 29px;
-    }
-    .sum_percent {
-        border-radius: 24px;
-        width: 58px;
-        height: 30px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 600;
-        font-size: 13px;
-        line-height: 20px;
-    }
-
-    .decline {
-        background: linear-gradient(
-                0deg,
-                rgba(255, 255, 255, 0.75),
-                rgba(255, 255, 255, 0.75)
-            ),
-            #f03738;
-        color: #b4292a;
-    }
-
-    .rise {
-        background: linear-gradient(
-                0deg,
-                rgba(255, 255, 255, 0.75),
-                rgba(255, 255, 255, 0.75)
-            ),
-            #3cc13b;
-        color: #2d912c;
-    }
-`
-
-const InputDetailContainer = styled(Stack)`
-    background: #fff;
-    padding: 28px 29px;
-    border-radius: 10px;
-`
-
-const InputWrapper = styled(Stack)`
-    label {
-        font-family: 'Open Sans', sans-serif;
-        font-weight: 600;
-        font-size: 12px;
-        line-height: 16px;
-        color: #16191c;
-    }
-
-    input {
-        font-family: 'Open Sans', sans-serif;
-        font-weight: 400;
-        font-size: 14px;
-        line-height: 20px;
-        color: #16191c;
-    }
-`
-
-const LinkToolsWrap = styled(Stack)`
-    p {
-        font-family: 'Open Sans';
-        font-style: normal;
-        font-weight: 400;
-        font-size: 14px;
-        line-height: 16px;
-        color: #92979d;
-    }
-
-    .current {
-        color: #1f2225;
-        font-weight: 600;
     }
 `

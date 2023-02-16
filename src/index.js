@@ -6,7 +6,7 @@ import App from './App'
 import reportWebVitals from './reportWebVitals'
 import '@fontsource/roboto'
 import './index.css'
-import { ThemeProvider } from 'styled-components'
+
 //import ChakraProvider
 import { ChakraProvider } from '@chakra-ui/react'
 
@@ -15,10 +15,9 @@ const root = createRoot(container)
 
 root.render(
     <Provider store={store}>
-     <ChakraProvider>
-       <App />
-     </ChakraProvider>
-      
+        <ChakraProvider>
+            <App />
+        </ChakraProvider>
     </Provider>
 )
 

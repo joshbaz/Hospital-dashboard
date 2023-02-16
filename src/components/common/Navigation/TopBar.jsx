@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React from 'react'
 import styled from 'styled-components'
 import {
     Box,
@@ -10,16 +10,22 @@ import {
     MenuItem,
     Avatar,
 } from '@chakra-ui/react'
-import { useSelector, useDispatch } from 'react-redux'
+import { useDispatch } from 'react-redux'
 import Cookies from 'js-cookie'
 import { useNavigate } from 'react-router-dom'
+import { Logout, reset } from '../../../app/store/features/auth/authSlice'
 
 const TopBar = ({ topbarData }) => {
     let routeNavigate = useNavigate()
+    let dispatch = useDispatch()
     let isAuthenticated = !!Cookies.get('_tk')
     let users = isAuthenticated ? JSON.parse(Cookies.get('user')) : null
 
-    let user = null
+    const onLogout = () => {
+        dispatch(Logout())
+        dispatch(reset())
+        routeNavigate('/auth/login', { replace: true })
+    }
     return (
         <Container
             direction='row'
@@ -75,7 +81,9 @@ const TopBar = ({ topbarData }) => {
                         <MenuList className='menulist'>
                             {/**<MenuItem>Account</MenuItem>  */}
 
-                            <MenuItem className='menulist_item'>
+                            <MenuItem
+                                onClick={onLogout}
+                                className='menulist_item'>
                                 Logout
                             </MenuItem>
                         </MenuList>
@@ -132,7 +140,7 @@ const Container = styled(Stack)`
 
     .menulist_item {
         height: 30px;
-        width: 150px;
+        width: 100%;
         display: flex;
         justify-content: center;
         align-items: center;

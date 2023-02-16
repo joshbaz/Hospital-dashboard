@@ -23,7 +23,9 @@ const Logint = () => {
     let dispatch = useDispatch()
 
     //in-house state
+    // eslint-disable-next-line no-unused-vars
     const [passError, setPassError] = React.useState(false)
+    // eslint-disable-next-line no-unused-vars
     const [usernameError, setUserNameError] = React.useState(false)
     const [helperFunctions, setHelperFunctions] = React.useState(null)
     const [isSubmittingp, setIsSubmittingp] = React.useState(false)

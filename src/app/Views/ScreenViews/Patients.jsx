@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React from 'react'
 import {
     Box,
     Stack,
@@ -62,42 +62,6 @@ const TableHeadData = [
     },
 ]
 
-const searchData = []
-const projectTagData = []
-const exportData = []
-const allDisplayData2 = [
-    {
-        _id: 1,
-        patientId: '8HI00122',
-        patientName: 'Maritza Mertz',
-        phoneNumber: '+254114 635982',
-        height: `5’6”`,
-        weight: ' 36kg',
-        platform: 'Android',
-        dateJoined: '30/12/2021',
-    },
-    {
-        _id: 2,
-        patientId: '8HI00122',
-        patientName: 'Maritza Mertz',
-        phoneNumber: '+254114 635982',
-        height: `5’6”`,
-        weight: ' 36kg',
-        platform: 'Android',
-        dateJoined: '30/12/2021',
-    },
-    {
-        _id: 3,
-        patientId: '8HI00122',
-        patientName: 'Maritza Mertz',
-        phoneNumber: '+254114 635982',
-        height: `5’6”`,
-        weight: ' 36kg',
-        platform: 'Android',
-        dateJoined: '30/12/2021',
-    },
-]
-
 const Patients = () => {
     let routeNavigate = useNavigate()
     let dispatch = useDispatch()
@@ -106,6 +70,7 @@ const Patients = () => {
     const [helperFunctions, setHelperFunctions] = React.useState(null)
     const [isSubmittingp, setIsSubmittingp] = React.useState(false)
     const [createPatient, setCreatePatient] = React.useState(false)
+    // eslint-disable-next-line no-unused-vars
     const [perPage, setPerPage] = React.useState(10)
     const [searchValue, setSearchValue] = React.useState('')
     const [allDisplayData, setAllDisplayData] = React.useState({
@@ -144,7 +109,7 @@ const Patients = () => {
 
     React.useEffect(() => {
         dispatch(GetAllPatients())
-    }, [])
+    }, [dispatch])
 
     React.useEffect(() => {
         if (isError) {
@@ -214,10 +179,12 @@ const Patients = () => {
             totalAllItems: allQueriedItems.length,
             totalPages: pageLength,
         })
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [allItems])
 
     /** paginate search */
     React.useEffect(() => {
+        // eslint-disable-next-line array-callback-return
         const searchResults = allDisplayData.allItems.filter((data) => {
             let serachedValue = searchValue
                 ? searchValue.toLowerCase()
@@ -259,6 +226,7 @@ const Patients = () => {
             totalAllItems: searchResults.length,
             totalPages: pageLength,
         })
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [searchValue])
 
     //handle previous button
@@ -352,8 +320,6 @@ const Patients = () => {
 
     /** handle search input */
     const handleSearchInput = (e) => {
-        console.log(e.target.value, 'values')
-
         setSearchValue(() => e.target.value)
 
         if (e.target.value) {
