@@ -22,6 +22,7 @@ import {
     reset,
 } from '../../store/features/patients/patientSlice'
 import { useDispatch, useSelector } from 'react-redux'
+import { initSocketConnection } from '../../../socketio.service'
 
 const Overview = () => {
     let dispatch = useDispatch()
@@ -33,6 +34,24 @@ const Overview = () => {
         dispatch(GetdashboardReports())
         dispatch(GetdashboardPieGraph())
         dispatch(GetdashboardBarGraph())
+
+        const io = initSocketConnection()
+
+        io.on('update-dash-vitals', (data) => {
+            if (data.actions === 'request-vitals-bg') {
+                dispatch(GetdashboardReports())
+                dispatch(GetdashboardPieGraph())
+            }
+            if (data.actions === 'request-vitals-bp') {
+                dispatch(GetdashboardReports())
+                dispatch(GetdashboardPieGraph())
+            }
+
+            if (data.actions === 'request-vitals-fa') {
+                dispatch(GetdashboardReports())
+                dispatch(GetdashboardPieGraph())
+            }
+        })
     }, [dispatch])
 
     const {

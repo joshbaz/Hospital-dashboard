@@ -27,6 +27,8 @@ import {
     reset,
 } from '../../store/features/patients/patientSlice'
 import { useDispatch, useSelector } from 'react-redux'
+import moment from 'moment-timezone'
+import { initSocketConnection } from '../../../socketio.service'
 
 const TableHeadNewData2 = [
     {
@@ -81,6 +83,13 @@ const HealthVitalsBPressure = () => {
 
     React.useEffect(() => {
         dispatch(GetAllBPVitals())
+        const io = initSocketConnection()
+
+        io.on('update-dash-vitals', (data) => {
+            if (data.actions === 'request-vitals-bp') {
+                dispatch(GetAllBPVitals())
+            }
+        })
     }, [dispatch])
 
     React.useEffect(() => {
@@ -139,8 +148,12 @@ const HealthVitalsBPressure = () => {
             let serachedValue = searchValue
                 ? searchValue.toLowerCase()
                 : searchValue
-            let name = data.patientName.toLowerCase()
-            let patientId = data.patientId.toLowerCase()
+            let name = data.patientUniqueId.patientName
+                ? data.patientUniqueId.patientName.toLowerCase()
+                : ''
+            let patientId = data.patientUniqueId.patientId
+                ? data.patientUniqueId.patientId.toLowerCase()
+                : ''
             if (name.includes(serachedValue)) {
                 return data
             } else if (patientId.includes(serachedValue)) {
@@ -447,6 +460,18 @@ const HealthVitalsBPressure = () => {
                                                 <>
                                                     {searchData.items.map(
                                                         (data, index) => {
+                                                            let createdDate =
+                                                                moment(
+                                                                    new Date(
+                                                                        data.createdDate
+                                                                    )
+                                                                )
+                                                                    .tz(
+                                                                        'Africa/Nairobi'
+                                                                    )
+                                                                    .format(
+                                                                        'DD MMM YYYY h:mm a'
+                                                                    )
                                                             return (
                                                                 <Tr
                                                                     className={`table_row `}
@@ -488,7 +513,7 @@ const HealthVitalsBPressure = () => {
                                                                             color: '#15151D',
                                                                         }}>
                                                                         {
-                                                                            data.dateMeasured
+                                                                            createdDate
                                                                         }
                                                                     </Td>
 
@@ -510,7 +535,13 @@ const HealthVitalsBPressure = () => {
                                                                         }}>
                                                                         {
                                                                             data.healthVital
-                                                                        }
+                                                                        }{' '}
+                                                                        {data.healthType ===
+                                                                            'Blood Glucose' &&
+                                                                            'mg/dl'}{' '}
+                                                                        {data.healthType ===
+                                                                            'Blood Pressure' &&
+                                                                            'mm/Hg'}
                                                                     </Td>
                                                                     <Td
                                                                         maxW='250px'
@@ -524,12 +555,24 @@ const HealthVitalsBPressure = () => {
                                                                             <Box
                                                                                 className={`status ${
                                                                                     data.status ===
-                                                                                        'Normal' &&
+                                                                                        'normal' &&
                                                                                     'normal'
                                                                                 } ${
                                                                                     data.status ===
-                                                                                        'Critical Low' &&
-                                                                                    'critical'
+                                                                                    'concern'
+                                                                                        ? 'concern'
+                                                                                        : ''
+                                                                                } ${
+                                                                                    data.status ===
+                                                                                        'critical low' ||
+                                                                                    data.status ===
+                                                                                        'critical low' ||
+                                                                                    data.status ===
+                                                                                        'critical high' ||
+                                                                                    data.status ===
+                                                                                        'high'
+                                                                                        ? 'critical'
+                                                                                        : ''
                                                                                 }`}>
                                                                                 {
                                                                                     data.status
@@ -563,6 +606,18 @@ const HealthVitalsBPressure = () => {
                                                 <>
                                                     {allDisplayData.items.map(
                                                         (data, index) => {
+                                                            let createdDate =
+                                                                moment(
+                                                                    new Date(
+                                                                        data.createdDate
+                                                                    )
+                                                                )
+                                                                    .tz(
+                                                                        'Africa/Nairobi'
+                                                                    )
+                                                                    .format(
+                                                                        'DD MMM YYYY h:mm a'
+                                                                    )
                                                             return (
                                                                 <Tr
                                                                     className={`table_row `}
@@ -604,7 +659,7 @@ const HealthVitalsBPressure = () => {
                                                                             color: '#15151D',
                                                                         }}>
                                                                         {
-                                                                            data.dateMeasured
+                                                                            createdDate
                                                                         }
                                                                     </Td>
 
@@ -626,7 +681,13 @@ const HealthVitalsBPressure = () => {
                                                                         }}>
                                                                         {
                                                                             data.healthVital
-                                                                        }
+                                                                        }{' '}
+                                                                        {data.healthType ===
+                                                                            'Blood Glucose' &&
+                                                                            'mg/dl'}{' '}
+                                                                        {data.healthType ===
+                                                                            'Blood Pressure' &&
+                                                                            'mm/Hg'}
                                                                     </Td>
                                                                     <Td
                                                                         maxW='250px'
@@ -640,12 +701,24 @@ const HealthVitalsBPressure = () => {
                                                                             <Box
                                                                                 className={`status ${
                                                                                     data.status ===
-                                                                                        'Normal' &&
+                                                                                        'normal' &&
                                                                                     'normal'
                                                                                 } ${
                                                                                     data.status ===
-                                                                                        'Critical Low' &&
-                                                                                    'critical'
+                                                                                    'concern'
+                                                                                        ? 'concern'
+                                                                                        : ''
+                                                                                } ${
+                                                                                    data.status ===
+                                                                                        'critical low' ||
+                                                                                    data.status ===
+                                                                                        'critical low' ||
+                                                                                    data.status ===
+                                                                                        'critical high' ||
+                                                                                    data.status ===
+                                                                                        'high'
+                                                                                        ? 'critical'
+                                                                                        : ''
                                                                                 }`}>
                                                                                 {
                                                                                     data.status
@@ -954,7 +1027,7 @@ const TableContainer = styled(Box)`
     }
 
     .status {
-        width: 100px;
+        min-width: 100px;
         background: #f2f2f2;
 
         border-radius: 24px;
@@ -965,6 +1038,7 @@ const TableContainer = styled(Box)`
         font-size: 13px;
         line-height: 20px;
         padding: 5px 15px;
+        text-transform: capitalize;
     }
 
     .normal {
@@ -980,6 +1054,11 @@ const TableContainer = styled(Box)`
                 rgba(255, 255, 255, 0.75)
             ),
             #f03738;
+    }
+
+    .concern {
+        color: #b68c15;
+        background: #fceec6;
     }
 `
 const NoItems = styled(Box)`

@@ -32,6 +32,8 @@ import {
     reset,
 } from '../../store/features/patients/patientSlice'
 import { useDispatch, useSelector } from 'react-redux'
+import moment from 'moment-timezone'
+import { initSocketConnection } from '../../../socketio.service'
 
 const TableHeadNewData2 = [
     {
@@ -63,6 +65,27 @@ const HealthVitalsMain = () => {
         dispatch(GetMainSummaryVitals())
         dispatch(GetMainRecentVitals())
         dispatch(GetMainMonthlySummaryVitals())
+
+        const io = initSocketConnection()
+
+        io.on('update-dash-vitals', (data) => {
+            if (data.actions === 'request-vitals-bg') {
+                dispatch(GetMainSummaryVitals())
+                dispatch(GetMainRecentVitals())
+                dispatch(GetMainMonthlySummaryVitals())
+            }
+            if (data.actions === 'request-vitals-bp') {
+                dispatch(GetMainSummaryVitals())
+                dispatch(GetMainRecentVitals())
+                dispatch(GetMainMonthlySummaryVitals())
+            }
+
+            if (data.actions === 'request-vitals-fa') {
+                dispatch(GetMainSummaryVitals())
+                dispatch(GetMainRecentVitals())
+                dispatch(GetMainMonthlySummaryVitals())
+            }
+        })
     }, [dispatch])
     const {
         isError,
@@ -441,26 +464,6 @@ const HealthVitalsMain = () => {
                                         </Box>
                                     </Box>
                                 </SelectorDropDown>
-                                <SelectorDropDown
-                                    direction='row'
-                                    className='month'>
-                                    <Box w='70%' className='selector_text'>
-                                        <Text>Sort By</Text>
-                                    </Box>
-
-                                    <Box w='30%' className='selector_icon'>
-                                        <Box>
-                                            <Icon
-                                                icon='material-symbols:arrow-back-ios-new'
-                                                color='#616569'
-                                                rotate={1}
-                                                hFlip={true}
-                                                vFlip={true}
-                                                width={'12'}
-                                            />
-                                        </Box>
-                                    </Box>
-                                </SelectorDropDown>
                             </Stack>
                         </TableHeadWrapper>
 
@@ -504,6 +507,18 @@ const HealthVitalsMain = () => {
                                             <>
                                                 {recentMainVitals.allvitals.map(
                                                     (data, index) => {
+                                                        let createdDate =
+                                                            moment(
+                                                                new Date(
+                                                                    data.createdDate
+                                                                )
+                                                            )
+                                                                .tz(
+                                                                    'Africa/Nairobi'
+                                                                )
+                                                                .format(
+                                                                    'DD MMM YYYY h:mm a'
+                                                                )
                                                         return (
                                                             <Tr
                                                                 className={`table_row `}
@@ -543,7 +558,7 @@ const HealthVitalsMain = () => {
                                                                         color: '#15151D',
                                                                     }}>
                                                                     {
-                                                                        data.dateMeasured
+                                                                        createdDate
                                                                     }
                                                                 </Td>
 
@@ -565,7 +580,13 @@ const HealthVitalsMain = () => {
                                                                     }}>
                                                                     {
                                                                         data.healthVital
-                                                                    }
+                                                                    }{' '}
+                                                                    {data.healthType ===
+                                                                        'Blood Glucose' &&
+                                                                        'mg/dl'}{' '}
+                                                                    {data.healthType ===
+                                                                        'Blood Pressure' &&
+                                                                        'mm/Hg'}
                                                                 </Td>
                                                                 <Td
                                                                     maxW='250px'
@@ -579,12 +600,24 @@ const HealthVitalsMain = () => {
                                                                         <Box
                                                                             className={`status ${
                                                                                 data.status ===
-                                                                                    'Normal' &&
+                                                                                    'normal' &&
                                                                                 'normal'
                                                                             } ${
                                                                                 data.status ===
-                                                                                    'Critical Low' &&
-                                                                                'critical'
+                                                                                'concern'
+                                                                                    ? 'concern'
+                                                                                    : ''
+                                                                            } ${
+                                                                                data.status ===
+                                                                                    'critical low' ||
+                                                                                data.status ===
+                                                                                    'critical low' ||
+                                                                                data.status ===
+                                                                                    'critical high' ||
+                                                                                data.status ===
+                                                                                    'high'
+                                                                                    ? 'critical'
+                                                                                    : ''
                                                                             }`}>
                                                                             {
                                                                                 data.status
@@ -726,7 +759,7 @@ const TableContainer = styled(Box)`
     }
 
     .status {
-        width: 100px;
+        min-width: 100px;
         background: #f2f2f2;
 
         border-radius: 24px;
@@ -737,6 +770,7 @@ const TableContainer = styled(Box)`
         font-size: 13px;
         line-height: 20px;
         padding: 5px 15px;
+        text-transform: capitalize;
     }
 
     .normal {
@@ -752,6 +786,11 @@ const TableContainer = styled(Box)`
                 rgba(255, 255, 255, 0.75)
             ),
             #f03738;
+    }
+
+    .concern {
+        color: #b68c15;
+        background: #fceec6;
     }
 `
 const NoItems = styled(Box)`

@@ -27,6 +27,8 @@ import {
     reset,
 } from '../../store/features/patients/patientSlice'
 import { useDispatch, useSelector } from 'react-redux'
+import moment from 'moment-timezone'
+import { initSocketConnection } from '../../../socketio.service'
 
 const TableHeadNewData2 = [
     {
@@ -79,6 +81,14 @@ const HealthVitalsFitness = () => {
 
     React.useEffect(() => {
         dispatch(GetAllFAVitals())
+
+        const io = initSocketConnection()
+
+        io.on('update-dash-vitals', (data) => {
+            if (data.actions === 'request-vitals-fa') {
+                dispatch(GetAllFAVitals())
+            }
+        })
     }, [dispatch])
 
     React.useEffect(() => {
@@ -445,6 +455,18 @@ const HealthVitalsFitness = () => {
                                                 <>
                                                     {searchData.items.map(
                                                         (data, index) => {
+                                                            let createdDate =
+                                                                moment(
+                                                                    new Date(
+                                                                        data.createdDate
+                                                                    )
+                                                                )
+                                                                    .tz(
+                                                                        'Africa/Nairobi'
+                                                                    )
+                                                                    .format(
+                                                                        'DD MMM YYYY h:mm a'
+                                                                    )
                                                             return (
                                                                 <Tr
                                                                     className={`table_row `}
@@ -486,7 +508,7 @@ const HealthVitalsFitness = () => {
                                                                             color: '#15151D',
                                                                         }}>
                                                                         {
-                                                                            data.dateMeasured
+                                                                            createdDate
                                                                         }
                                                                     </Td>
 
@@ -536,6 +558,18 @@ const HealthVitalsFitness = () => {
                                                 <>
                                                     {allDisplayData.items.map(
                                                         (data, index) => {
+                                                            let createdDate =
+                                                                moment(
+                                                                    new Date(
+                                                                        data.createdDate
+                                                                    )
+                                                                )
+                                                                    .tz(
+                                                                        'Africa/Nairobi'
+                                                                    )
+                                                                    .format(
+                                                                        'DD MMM YYYY h:mm a'
+                                                                    )
                                                             return (
                                                                 <Tr
                                                                     className={`table_row `}
@@ -577,7 +611,7 @@ const HealthVitalsFitness = () => {
                                                                             color: '#15151D',
                                                                         }}>
                                                                         {
-                                                                            data.dateMeasured
+                                                                            createdDate
                                                                         }
                                                                     </Td>
 
@@ -902,7 +936,7 @@ const TableContainer = styled(Box)`
     }
 
     .status {
-        width: 100px;
+        min-width: 100px;
         background: #f2f2f2;
 
         border-radius: 24px;
@@ -913,6 +947,7 @@ const TableContainer = styled(Box)`
         font-size: 13px;
         line-height: 20px;
         padding: 5px 15px;
+        text-transform: capitalize;
     }
 
     .normal {

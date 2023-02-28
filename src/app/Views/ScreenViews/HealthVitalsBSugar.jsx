@@ -20,12 +20,13 @@ import Navigation from '../../../components/common/Navigation/Navigation'
 import { Icon } from '@iconify/react'
 import '@fontsource/open-sans'
 import '@fontsource/roboto'
-
+import moment from 'moment-timezone'
 import {
     GetAllBSVitals,
     reset,
 } from '../../store/features/patients/patientSlice'
 import { useDispatch, useSelector } from 'react-redux'
+import { initSocketConnection } from '../../../socketio.service'
 
 const TableHeadNewData2 = [
     {
@@ -80,6 +81,12 @@ const HealthVitalsBSugar = () => {
 
     React.useEffect(() => {
         dispatch(GetAllBSVitals())
+        const io = initSocketConnection()
+        io.on('update-dash-vitals', (data) => {
+            if (data.actions === 'request-vitals-bg') {
+                dispatch(GetAllBSVitals())
+            }
+        })
     }, [dispatch])
 
     React.useEffect(() => {
@@ -135,11 +142,14 @@ const HealthVitalsBSugar = () => {
     React.useEffect(() => {
         // eslint-disable-next-line array-callback-return
         const searchResults = allDisplayData.allItems.filter((data) => {
-            let serachedValue = searchValue
-                ? searchValue.toLowerCase()
-                : searchValue
-            let name = data.patientName.toLowerCase()
-            let patientId = data.patientId.toLowerCase()
+            let serachedValue =
+                searchValue !== '' ? searchValue.toLowerCase() : searchValue
+            let name = data.patientUniqueId.patientName
+                ? data.patientUniqueId.patientName.toLowerCase()
+                : ''
+            let patientId = data.patientUniqueId.patientId
+                ? data.patientUniqueId.patientId.toLowerCase()
+                : ''
             if (name.includes(serachedValue)) {
                 return data
             } else if (patientId.includes(serachedValue)) {
@@ -446,6 +456,18 @@ const HealthVitalsBSugar = () => {
                                                 <>
                                                     {searchData.items.map(
                                                         (data, index) => {
+                                                            let createdDate =
+                                                                moment(
+                                                                    new Date(
+                                                                        data.createdDate
+                                                                    )
+                                                                )
+                                                                    .tz(
+                                                                        'Africa/Nairobi'
+                                                                    )
+                                                                    .format(
+                                                                        'DD MMM YYYY h:mm a'
+                                                                    )
                                                             return (
                                                                 <Tr
                                                                     className={`table_row `}
@@ -487,7 +509,7 @@ const HealthVitalsBSugar = () => {
                                                                             color: '#15151D',
                                                                         }}>
                                                                         {
-                                                                            data.dateMeasured
+                                                                            createdDate
                                                                         }
                                                                     </Td>
 
@@ -509,7 +531,13 @@ const HealthVitalsBSugar = () => {
                                                                         }}>
                                                                         {
                                                                             data.healthVital
-                                                                        }
+                                                                        }{' '}
+                                                                        {data.healthType ===
+                                                                            'Blood Glucose' &&
+                                                                            'mg/dl'}{' '}
+                                                                        {data.healthType ===
+                                                                            'Blood Pressure' &&
+                                                                            'mm/Hg'}
                                                                     </Td>
                                                                     <Td
                                                                         maxW='250px'
@@ -523,12 +551,24 @@ const HealthVitalsBSugar = () => {
                                                                             <Box
                                                                                 className={`status ${
                                                                                     data.status ===
-                                                                                        'Normal' &&
+                                                                                        'normal' &&
                                                                                     'normal'
                                                                                 } ${
                                                                                     data.status ===
-                                                                                        'Critical Low' &&
-                                                                                    'critical'
+                                                                                    'concern'
+                                                                                        ? 'concern'
+                                                                                        : ''
+                                                                                } ${
+                                                                                    data.status ===
+                                                                                        'critical low' ||
+                                                                                    data.status ===
+                                                                                        'critical low' ||
+                                                                                    data.status ===
+                                                                                        'critical high' ||
+                                                                                    data.status ===
+                                                                                        'high'
+                                                                                        ? 'critical'
+                                                                                        : ''
                                                                                 }`}>
                                                                                 {
                                                                                     data.status
@@ -562,6 +602,18 @@ const HealthVitalsBSugar = () => {
                                                 <>
                                                     {allDisplayData.items.map(
                                                         (data, index) => {
+                                                            let createdDate =
+                                                                moment(
+                                                                    new Date(
+                                                                        data.createdDate
+                                                                    )
+                                                                )
+                                                                    .tz(
+                                                                        'Africa/Nairobi'
+                                                                    )
+                                                                    .format(
+                                                                        'DD MMM YYYY h:mm a'
+                                                                    )
                                                             return (
                                                                 <Tr
                                                                     className={`table_row `}
@@ -603,7 +655,7 @@ const HealthVitalsBSugar = () => {
                                                                             color: '#15151D',
                                                                         }}>
                                                                         {
-                                                                            data.dateMeasured
+                                                                            createdDate
                                                                         }
                                                                     </Td>
 
@@ -625,7 +677,13 @@ const HealthVitalsBSugar = () => {
                                                                         }}>
                                                                         {
                                                                             data.healthVital
-                                                                        }
+                                                                        }{' '}
+                                                                        {data.healthType ===
+                                                                            'Blood Glucose' &&
+                                                                            'mg/dl'}{' '}
+                                                                        {data.healthType ===
+                                                                            'Blood Pressure' &&
+                                                                            'mm/Hg'}
                                                                     </Td>
                                                                     <Td
                                                                         maxW='250px'
@@ -639,12 +697,24 @@ const HealthVitalsBSugar = () => {
                                                                             <Box
                                                                                 className={`status ${
                                                                                     data.status ===
-                                                                                        'Normal' &&
+                                                                                        'normal' &&
                                                                                     'normal'
                                                                                 } ${
                                                                                     data.status ===
-                                                                                        'Critical Low' &&
-                                                                                    'critical'
+                                                                                    'concern'
+                                                                                        ? 'concern'
+                                                                                        : ''
+                                                                                } ${
+                                                                                    data.status ===
+                                                                                        'critical low' ||
+                                                                                    data.status ===
+                                                                                        'critical low' ||
+                                                                                    data.status ===
+                                                                                        'critical high' ||
+                                                                                    data.status ===
+                                                                                        'high'
+                                                                                        ? 'critical'
+                                                                                        : ''
                                                                                 }`}>
                                                                                 {
                                                                                     data.status
@@ -953,7 +1023,7 @@ const TableContainer = styled(Box)`
     }
 
     .status {
-        width: 100px;
+        min-width: 100px;
         background: #f2f2f2;
 
         border-radius: 24px;
@@ -964,6 +1034,7 @@ const TableContainer = styled(Box)`
         font-size: 13px;
         line-height: 20px;
         padding: 5px 15px;
+        text-transform: capitalize;
     }
 
     .normal {
@@ -979,6 +1050,11 @@ const TableContainer = styled(Box)`
                 rgba(255, 255, 255, 0.75)
             ),
             #f03738;
+    }
+
+    .concern {
+        color: #b68c15;
+        background: #fceec6;
     }
 `
 const NoItems = styled(Box)`

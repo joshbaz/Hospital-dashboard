@@ -26,6 +26,7 @@ import {
     reset,
 } from '../../store/features/patients/patientSlice'
 import { useDispatch, useSelector } from 'react-redux'
+import moment from 'moment-timezone'
 
 const TableHeadNewData = [
     {
@@ -434,6 +435,18 @@ const ViewPatient = () => {
                                             <>
                                                 {individualPatient.vitals.map(
                                                     (data, index) => {
+                                                         let createdDate =
+                                                             moment(
+                                                                 new Date(
+                                                                     data.createdDate
+                                                                 )
+                                                             )
+                                                                 .tz(
+                                                                     'Africa/Nairobi'
+                                                                 )
+                                                                 .format(
+                                                                     'DD MMM YYYY h:mm a'
+                                                                 )
                                                         return (
                                                             <Tr
                                                                 className={`table_row `}
@@ -444,7 +457,7 @@ const ViewPatient = () => {
                                                                         fontWeight: 500,
                                                                     }}>
                                                                     {
-                                                                        data.dateMeasured
+                                                                        createdDate
                                                                     }
                                                                 </Td>
 
@@ -470,7 +483,13 @@ const ViewPatient = () => {
                                                                     }}>
                                                                     {
                                                                         data.healthVital
-                                                                    }
+                                                                    }{' '}
+                                                                    {data.healthType ===
+                                                                        'Blood Glucose' &&
+                                                                        'mg/dl'}{' '}
+                                                                    {data.healthType ===
+                                                                        'Blood Pressure' &&
+                                                                        'mm/Hg'}
                                                                 </Td>
 
                                                                 <Td
@@ -485,12 +504,24 @@ const ViewPatient = () => {
                                                                         <Box
                                                                             className={`status ${
                                                                                 data.status ===
-                                                                                    'Normal' &&
+                                                                                    'normal' &&
                                                                                 'normal'
                                                                             } ${
                                                                                 data.status ===
-                                                                                    'Critical Low' &&
-                                                                                'critical'
+                                                                                'concern'
+                                                                                    ? 'concern'
+                                                                                    : ''
+                                                                            } ${
+                                                                                data.status ===
+                                                                                    'critical low' ||
+                                                                                data.status ===
+                                                                                    'critical low' ||
+                                                                                data.status ===
+                                                                                    'critical high' ||
+                                                                                data.status ===
+                                                                                    'high'
+                                                                                    ? 'critical'
+                                                                                    : ''
                                                                             }`}>
                                                                             {
                                                                                 data.status
@@ -860,6 +891,7 @@ const TableContainer = styled(Box)`
         font-size: 13px;
         line-height: 20px;
         padding: 5px 15px;
+        text-transform: capitalize;
     }
 
     .normal {
@@ -875,6 +907,11 @@ const TableContainer = styled(Box)`
                 rgba(255, 255, 255, 0.75)
             ),
             #f03738;
+    }
+
+    .concern {
+        color: #b68c15;
+        background: #fceec6;
     }
 `
 const NoItems = styled(Box)`
