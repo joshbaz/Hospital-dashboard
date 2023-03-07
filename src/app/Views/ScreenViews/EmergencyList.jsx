@@ -596,12 +596,7 @@ const EmergencyList = () => {
                                             }>
                                             All Status
                                         </MenuItem>
-                                        <MenuItem
-                                            onClick={() =>
-                                                setStatuses(() => 'normal')
-                                            }>
-                                            Normal
-                                        </MenuItem>
+
                                         <MenuItem
                                             onClick={() =>
                                                 setStatuses(() => 'low')
@@ -629,12 +624,6 @@ const EmergencyList = () => {
                                                 )
                                             }>
                                             Critical High
-                                        </MenuItem>
-                                        <MenuItem
-                                            onClick={() =>
-                                                setStatuses(() => 'concern')
-                                            }>
-                                            Concern
                                         </MenuItem>
                                     </MenuList>
                                 </Menu>
