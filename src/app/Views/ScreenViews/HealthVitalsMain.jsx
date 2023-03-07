@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React from 'react'
 import {
     Box,
@@ -10,6 +11,10 @@ import {
     Td,
     Tbody,
     useToast,
+    Menu,
+    MenuButton,
+    MenuList,
+    MenuItem,
 } from '@chakra-ui/react'
 import styled from 'styled-components'
 import TopBar from '../../../components/common/Navigation/TopBar'
@@ -55,37 +60,51 @@ const TableHeadNewData2 = [
         title: 'Status',
     },
 ]
-
+let io = initSocketConnection()
 const HealthVitalsMain = () => {
     let dispatch = useDispatch()
     let toast = useToast()
     const [graphData, setGraphData] = React.useState([])
+    const [Statuses, setStatuses] = React.useState('')
+    const [vitalTimeType, setVitalTimeType] = React.useState('Before Breakfast')
+    const [allDisplayData, setAllDisplayData] = React.useState({
+        items: [],
+    })
 
     React.useEffect(() => {
-        dispatch(GetMainSummaryVitals())
-        dispatch(GetMainRecentVitals())
-        dispatch(GetMainMonthlySummaryVitals())
-
-        const io = initSocketConnection()
-
         io.on('update-dash-vitals', (data) => {
             if (data.actions === 'request-vitals-bg') {
                 dispatch(GetMainSummaryVitals())
                 dispatch(GetMainRecentVitals())
-                dispatch(GetMainMonthlySummaryVitals())
+                dispatch(GetMainMonthlySummaryVitals(vitalTimeType))
             }
             if (data.actions === 'request-vitals-bp') {
                 dispatch(GetMainSummaryVitals())
                 dispatch(GetMainRecentVitals())
-                dispatch(GetMainMonthlySummaryVitals())
+                dispatch(GetMainMonthlySummaryVitals(vitalTimeType))
             }
 
             if (data.actions === 'request-vitals-fa') {
                 dispatch(GetMainSummaryVitals())
                 dispatch(GetMainRecentVitals())
-                dispatch(GetMainMonthlySummaryVitals())
+                dispatch(GetMainMonthlySummaryVitals(vitalTimeType))
             }
         })
+
+        return () => {
+            //io.removeAllListeners('update-dash-vitals')
+
+            io.off('update-dash-vitals')
+        }
+    }, [vitalTimeType, io])
+
+    React.useEffect(() => {
+        dispatch(GetMainMonthlySummaryVitals(vitalTimeType))
+    }, [vitalTimeType])
+
+    React.useEffect(() => {
+        dispatch(GetMainSummaryVitals())
+        dispatch(GetMainRecentVitals())
     }, [dispatch])
     const {
         isError,
@@ -114,6 +133,26 @@ const HealthVitalsMain = () => {
     React.useEffect(() => {
         setGraphData(() => mainMonthlyVitalSummary.stats)
     }, [mainMonthlyVitalSummary.stats])
+
+    React.useEffect(() => {
+        let allQueriedItems = []
+        // eslint-disable-next-line array-callback-return
+        allQueriedItems = recentMainVitals.allvitals.filter((data) => {
+            if (Statuses === '') {
+                return data
+            } else {
+                if (data.status === Statuses) {
+                    return data
+                }
+            }
+        })
+
+        allQueriedItems.splice(8)
+
+        setAllDisplayData({
+            items: allQueriedItems,
+        })
+    }, [recentMainVitals.allvitals, Statuses])
 
     return (
         <Container direction='row' w='100vw' spacing={'0px'}>
@@ -149,27 +188,76 @@ const HealthVitalsMain = () => {
                                     direction='row'
                                     alignItems='center'
                                     spacing='15px'>
-                                    <SelectorDropDown
-                                        w='170px'
-                                        direction='row'
-                                        className='month'>
-                                        <Box w='70%' className='selector_text'>
-                                            <Text>Before Breakfast</Text>
-                                        </Box>
+                                    <Menu>
+                                        <MenuButton>
+                                            {' '}
+                                            <SelectorDropDown
+                                                w='170px'
+                                                direction='row'
+                                                className='month'>
+                                                <Box
+                                                    w='70%'
+                                                    className='selector_text'>
+                                                    <Text>
+                                                        {vitalTimeType ===
+                                                        'Before Breakfast'
+                                                            ? 'Before Breakfast'
+                                                            : vitalTimeType}
+                                                    </Text>
+                                                </Box>
 
-                                        <Box w='30%' className='selector_icon'>
-                                            <Box>
-                                                <Icon
-                                                    icon='material-symbols:arrow-back-ios-new'
-                                                    color='#616569'
-                                                    rotate={1}
-                                                    hFlip={true}
-                                                    vFlip={true}
-                                                    width={'12'}
-                                                />
-                                            </Box>
-                                        </Box>
-                                    </SelectorDropDown>
+                                                <Box
+                                                    w='30%'
+                                                    className='selector_icon'>
+                                                    <Box>
+                                                        <Icon
+                                                            icon='material-symbols:arrow-back-ios-new'
+                                                            color='#616569'
+                                                            rotate={1}
+                                                            hFlip={true}
+                                                            vFlip={true}
+                                                            width={'12'}
+                                                        />
+                                                    </Box>
+                                                </Box>
+                                            </SelectorDropDown>
+                                        </MenuButton>
+
+                                        <MenuList>
+                                            <MenuItem
+                                                onClick={() =>
+                                                    setVitalTimeType(
+                                                        () => 'Before Breakfast'
+                                                    )
+                                                }>
+                                                Before Breakfast
+                                            </MenuItem>
+                                            <MenuItem
+                                                onClick={() =>
+                                                    setVitalTimeType(
+                                                        () => 'Before Lunch'
+                                                    )
+                                                }>
+                                                Before Lunch
+                                            </MenuItem>
+                                            <MenuItem
+                                                onClick={() =>
+                                                    setVitalTimeType(
+                                                        () => 'Before Dinner'
+                                                    )
+                                                }>
+                                                Before Dinner
+                                            </MenuItem>
+                                            <MenuItem
+                                                onClick={() =>
+                                                    setVitalTimeType(
+                                                        () => 'Before Bedtime'
+                                                    )
+                                                }>
+                                                Before Bedtime
+                                            </MenuItem>
+                                        </MenuList>
+                                    </Menu>
                                 </Stack>
                             </TableHeadWrapper>
 
@@ -444,26 +532,87 @@ const HealthVitalsMain = () => {
                                 direction='row'
                                 alignItems='center'
                                 spacing='15px'>
-                                <SelectorDropDown
-                                    direction='row'
-                                    className='month'>
-                                    <Box w='70%' className='selector_text'>
-                                        <Text>All Status</Text>
-                                    </Box>
+                                <Menu>
+                                    <MenuButton>
+                                        <SelectorDropDown
+                                            direction='row'
+                                            className='month'>
+                                            <Box
+                                                w='70%'
+                                                className='selector_text'>
+                                                <Text>
+                                                    {Statuses !== ''
+                                                        ? Statuses
+                                                        : 'All Status'}
+                                                </Text>
+                                            </Box>
 
-                                    <Box w='30%' className='selector_icon'>
-                                        <Box>
-                                            <Icon
-                                                icon='material-symbols:arrow-back-ios-new'
-                                                color='#616569'
-                                                rotate={1}
-                                                hFlip={true}
-                                                vFlip={true}
-                                                width={'12'}
-                                            />
-                                        </Box>
-                                    </Box>
-                                </SelectorDropDown>
+                                            <Box
+                                                w='30%'
+                                                className='selector_icon'>
+                                                <Box>
+                                                    <Icon
+                                                        icon='material-symbols:arrow-back-ios-new'
+                                                        color='#616569'
+                                                        rotate={1}
+                                                        hFlip={true}
+                                                        vFlip={true}
+                                                        width={'12'}
+                                                    />
+                                                </Box>
+                                            </Box>
+                                        </SelectorDropDown>
+                                    </MenuButton>
+
+                                    <MenuList>
+                                        <MenuItem
+                                            onClick={() =>
+                                                setStatuses(() => '')
+                                            }>
+                                            All Status
+                                        </MenuItem>
+                                        <MenuItem
+                                            onClick={() =>
+                                                setStatuses(() => 'normal')
+                                            }>
+                                            Normal
+                                        </MenuItem>
+                                        <MenuItem
+                                            onClick={() =>
+                                                setStatuses(() => 'low')
+                                            }>
+                                            Low
+                                        </MenuItem>
+                                        <MenuItem
+                                            onClick={() =>
+                                                setStatuses(() => 'high')
+                                            }>
+                                            High
+                                        </MenuItem>
+                                        <MenuItem
+                                            onClick={() =>
+                                                setStatuses(
+                                                    () => 'critical low'
+                                                )
+                                            }>
+                                            Critical Low
+                                        </MenuItem>
+                                        <MenuItem
+                                            onClick={() =>
+                                                setStatuses(
+                                                    () => 'critical high'
+                                                )
+                                            }>
+                                            Critical High
+                                        </MenuItem>
+                                        <MenuItem
+                                            onClick={() =>
+                                                setStatuses(() => 'concern')
+                                            }>
+                                            Concern
+                                        </MenuItem>
+                                    </MenuList>
+                                </Menu>
                             </Stack>
                         </TableHeadWrapper>
 
@@ -502,10 +651,9 @@ const HealthVitalsMain = () => {
 
                                     {/** body */}
                                     <Tbody>
-                                        {recentMainVitals.allvitals.length >
-                                        0 ? (
+                                        {allDisplayData.items.length > 0 ? (
                                             <>
-                                                {recentMainVitals.allvitals.map(
+                                                {allDisplayData.items.map(
                                                     (data, index) => {
                                                         let createdDate =
                                                             moment(
@@ -609,7 +757,7 @@ const HealthVitalsMain = () => {
                                                                                     : ''
                                                                             } ${
                                                                                 data.status ===
-                                                                                    'critical low' ||
+                                                                                    'low' ||
                                                                                 data.status ===
                                                                                     'critical low' ||
                                                                                 data.status ===

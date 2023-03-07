@@ -1,3 +1,4 @@
+/* eslint-disable array-callback-return */
 import React from 'react'
 import {
     Box,
@@ -18,6 +19,10 @@ import {
     ModalContent,
     ModalBody,
     useToast,
+    Menu,
+    MenuButton,
+    MenuList,
+    MenuItem,
 } from '@chakra-ui/react'
 import styled from 'styled-components'
 import TopBar from '../../../components/common/Navigation/TopBar'
@@ -30,12 +35,21 @@ import { useNavigate } from 'react-router-dom'
 import { Formik, Form } from 'formik'
 import * as yup from 'yup'
 import { useDispatch, useSelector } from 'react-redux'
+import moment from 'moment-timezone'
 
 import {
     GetAllPatients,
     CreatePatient,
     reset,
 } from '../../store/features/patients/patientSlice'
+
+import { io } from 'socket.io-client'
+import { BASE_API_ } from '../../../middleware/base_url.config'
+let socket = io(BASE_API_, {
+    transports: ['websocket'],
+    upgrade: false,
+    //reconnection: false,
+})
 
 const TableHeadData = [
     {
@@ -92,6 +106,7 @@ const Patients = () => {
         totalAllItems: 0,
         totalPages: 0,
     })
+    const [sortBy, setSortBy] = React.useState('')
     //validation schema
     const validationSchema = yup.object().shape({
         patientName: yup.string().required('name is required'),
@@ -107,6 +122,20 @@ const Patients = () => {
         setCreatePatient(() => false)
     }
 
+    React.useState(() => {
+        socket.on('update-patients', (data) => {
+            if (data.actions === 'new-patient') {
+                dispatch(GetAllPatients())
+            }
+        })
+
+        return () => {
+            socket.off('update-patients')
+            //LocalSockets.removeAllListeners('update-dash-vitals')
+
+            // io.disconnect()
+        }
+    }, [dispatch])
     React.useEffect(() => {
         dispatch(GetAllPatients())
     }, [dispatch])
@@ -150,9 +179,45 @@ const Patients = () => {
 
     //paginate the all items
     React.useEffect(() => {
-        let allQueriedItems = allItems.items.filter((data) => {
-            return data
-        })
+        let allQueriedItems = []
+
+        if (sortBy === '') {
+            allQueriedItems = allItems.items.filter((data) => {
+                return data
+            })
+        } else {
+            let sortItems = allItems.items.filter((data) => {
+                return data
+            })
+
+            if (sortBy === 'Name-A') {
+                allQueriedItems = sortItems.sort((a, b) => {
+                    if (a.patientName < b.patientName) {
+                        return -1
+                    }
+                })
+            }
+
+            if (sortBy === 'Name-D') {
+                allQueriedItems = sortItems.sort((a, b) => {
+                    if (a.patientName > b.patientName) {
+                        return -1
+                    } else {
+                        return 0
+                    }
+                })
+            }
+
+            if (sortBy === 'Platform') {
+                allQueriedItems = sortItems.sort((a, b) => {
+                    if (a.platform < b.platform) {
+                        return -1
+                    } else {
+                        return 0
+                    }
+                })
+            }
+        }
 
         const allItemsCollected = allQueriedItems
 
@@ -180,24 +245,70 @@ const Patients = () => {
             totalPages: pageLength,
         })
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [allItems])
+    }, [allItems, sortBy])
 
     /** paginate search */
     React.useEffect(() => {
-        // eslint-disable-next-line array-callback-return
-        const searchResults = allDisplayData.allItems.filter((data) => {
-            let serachedValue = searchValue
-                ? searchValue.toLowerCase()
-                : searchValue
-            let name = data.patientName.toLowerCase()
-            let patientId = data.patientId.toLowerCase()
-            if (name.includes(serachedValue)) {
-                return data
-            } else if (patientId.includes(serachedValue)) {
-                return data
-            } else {
+        let searchResults = []
+
+        if (sortBy === '') {
+            // eslint-disable-next-line array-callback-return
+            searchResults = allItems.items.filter((data) => {
+                let serachedValue = searchValue
+                    ? searchValue.toLowerCase()
+                    : searchValue
+                let name = data.patientName.toLowerCase()
+                let patientId = data.patientId.toLowerCase()
+                if (name.includes(serachedValue)) {
+                    return data
+                } else if (patientId.includes(serachedValue)) {
+                    return data
+                } else {
+                }
+            })
+        } else {
+            let sortItems = allItems.items.filter((data) => {
+                let serachedValue = searchValue
+                    ? searchValue.toLowerCase()
+                    : searchValue
+                let name = data.patientName.toLowerCase()
+                let patientId = data.patientId.toLowerCase()
+                if (name.includes(serachedValue)) {
+                    return data
+                } else if (patientId.includes(serachedValue)) {
+                    return data
+                } else {
+                }
+            })
+
+            if (sortBy === 'Name-A') {
+                searchResults = sortItems.sort((a, b) => {
+                    if (a.patientName < b.patientName) {
+                        return -1
+                    }
+                })
             }
-        })
+
+            if (sortBy === 'Name-D') {
+                searchResults = sortItems.sort((a, b) => {
+                    if (a.patientName > b.patientName) {
+                        return -1
+                    } else {
+                        return 0
+                    }
+                })
+            }
+
+            if (sortBy === 'Platform') {
+                searchResults = sortItems.sort((a, b) => {
+                    if (a.platform < b.platform) {
+                        return -1
+                    } else {
+                        return 0
+                    }
+                })
+            }
+        }
 
         const allItemsCollected = searchResults
 
@@ -227,7 +338,7 @@ const Patients = () => {
             totalPages: pageLength,
         })
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [searchValue])
+    }, [searchValue, sortBy, allItems])
 
     //handle previous button
     const handlePrev = () => {
@@ -412,26 +523,58 @@ const Patients = () => {
                                 direction='row'
                                 alignItems='center'
                                 spacing='15px'>
-                                <SelectorDropDown
-                                    direction='row'
-                                    className='month'>
-                                    <Box w='70%' className='selector_text'>
-                                        <Text>Sort By</Text>
-                                    </Box>
+                                <Menu>
+                                    <MenuButton>
+                                        <SelectorDropDown
+                                            direction='row'
+                                            className='month'>
+                                            <Box
+                                                w='70%'
+                                                className='selector_text'>
+                                                <Text>
+                                                    {sortBy !== ''
+                                                        ? sortBy
+                                                        : 'Sort By'}
+                                                </Text>
+                                            </Box>
 
-                                    <Box w='30%' className='selector_icon'>
-                                        <Box>
-                                            <Icon
-                                                icon='material-symbols:arrow-back-ios-new'
-                                                color='#616569'
-                                                rotate={1}
-                                                hFlip={true}
-                                                vFlip={true}
-                                                width={'12'}
-                                            />
-                                        </Box>
-                                    </Box>
-                                </SelectorDropDown>
+                                            <Box
+                                                w='30%'
+                                                className='selector_icon'>
+                                                <Box>
+                                                    <Icon
+                                                        icon='material-symbols:arrow-back-ios-new'
+                                                        color='#616569'
+                                                        rotate={1}
+                                                        hFlip={true}
+                                                        vFlip={true}
+                                                        width={'12'}
+                                                    />
+                                                </Box>
+                                            </Box>
+                                        </SelectorDropDown>
+                                    </MenuButton>
+
+                                    <MenuList>
+                                        <MenuItem onClick={() => setSortBy('')}>
+                                            Sort By
+                                        </MenuItem>
+                                        <MenuItem
+                                            onClick={() => setSortBy('Name-A')}>
+                                            Name-Ascending
+                                        </MenuItem>
+                                        <MenuItem
+                                            onClick={() => setSortBy('Name-D')}>
+                                            Name-Descending
+                                        </MenuItem>
+                                        <MenuItem
+                                            onClick={() =>
+                                                setSortBy('Platform')
+                                            }>
+                                            Platform
+                                        </MenuItem>
+                                    </MenuList>
+                                </Menu>
 
                                 <NewButton
                                     onClick={() =>
@@ -476,6 +619,30 @@ const Patients = () => {
                                                 <>
                                                     {searchData.items.map(
                                                         (data, index) => {
+                                                            let createdDate =
+                                                                data.dateJoined
+                                                                    ? moment(
+                                                                          new Date(
+                                                                              data.dateJoined
+                                                                          )
+                                                                      )
+                                                                          .tz(
+                                                                              'Africa/Nairobi'
+                                                                          )
+                                                                          .format(
+                                                                              'DD MMM YYYY h:mm a'
+                                                                          )
+                                                                    : moment(
+                                                                          new Date(
+                                                                              data.createdAt
+                                                                          )
+                                                                      )
+                                                                          .tz(
+                                                                              'Africa/Nairobi'
+                                                                          )
+                                                                          .format(
+                                                                              'DD MMM YYYY h:mm a'
+                                                                          )
                                                             return (
                                                                 <Tr
                                                                     className={`table_row `}
@@ -547,7 +714,7 @@ const Patients = () => {
                                                                             color: '#15151D',
                                                                         }}>
                                                                         {
-                                                                            data.dateJoined
+                                                                            createdDate
                                                                         }
                                                                     </Td>
                                                                     <Td>
@@ -608,6 +775,30 @@ const Patients = () => {
                                                 <>
                                                     {allDisplayData.items.map(
                                                         (data, index) => {
+                                                            let createdDate =
+                                                                data.dateJoined
+                                                                    ? moment(
+                                                                          new Date(
+                                                                              data.dateJoined
+                                                                          )
+                                                                      )
+                                                                          .tz(
+                                                                              'Africa/Nairobi'
+                                                                          )
+                                                                          .format(
+                                                                              'DD MMM YYYY h:mm a'
+                                                                          )
+                                                                    : moment(
+                                                                          new Date(
+                                                                              data.createdAt
+                                                                          )
+                                                                      )
+                                                                          .tz(
+                                                                              'Africa/Nairobi'
+                                                                          )
+                                                                          .format(
+                                                                              'DD MMM YYYY h:mm a'
+                                                                          )
                                                             return (
                                                                 <Tr
                                                                     className={`table_row `}
@@ -679,7 +870,7 @@ const Patients = () => {
                                                                             color: '#15151D',
                                                                         }}>
                                                                         {
-                                                                            data.dateJoined
+                                                                            createdDate
                                                                         }
                                                                     </Td>
                                                                     <Td>

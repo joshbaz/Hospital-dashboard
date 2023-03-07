@@ -1,3 +1,4 @@
+/* eslint-disable array-callback-return */
 import React from 'react'
 import {
     Box,
@@ -25,7 +26,7 @@ import {
 import styled from 'styled-components'
 import TopBar from '../../../components/common/Navigation/TopBar'
 import Navigation from '../../../components/common/Navigation/Navigation'
-
+import moment from 'moment-timezone'
 import { Icon } from '@iconify/react'
 import '@fontsource/open-sans'
 import '@fontsource/roboto'
@@ -35,24 +36,36 @@ import {
     GetIndividualPatient,
     CreatePrescription,
     EditPrescription,
+    CreateRefill,
     reset,
 } from '../../store/features/patients/patientSlice'
 import { useDispatch, useSelector } from 'react-redux'
 import { Formik, Form } from 'formik'
 import * as yup from 'yup'
+import Cookies from 'js-cookie'
+import { io } from 'socket.io-client'
+import { BASE_API_ } from '../../../middleware/base_url.config'
+let socket = io(BASE_API_, {
+    transports: ['websocket'],
+    upgrade: false,
+    //reconnection: false,
+})
 
 const TableHeadNewData = [
     {
         title: 'PscbID',
     },
     {
-        title: 'Drug Name',
+        title: 'Drug',
     },
     {
-        title: 'Genetic Name',
+        title: 'Generic Name',
     },
     {
         title: 'Class',
+    },
+    {
+        title: 'Prescribed',
     },
     {
         title: 'Last Prescribed',
@@ -61,7 +74,10 @@ const TableHeadNewData = [
         title: 'Status',
     },
     {
-        title: 'Refill Request',
+        title: 'Refill',
+    },
+    {
+        title: '',
     },
     {
         title: '',
@@ -74,6 +90,8 @@ const ViewPatientPrescription = () => {
     let dispatch = useDispatch()
     const [helperFunctions, setHelperFunctions] = React.useState(null)
     const [isSubmittingp, setIsSubmittingp] = React.useState(false)
+    const [isSubmittingp1, setIsSubmittingp1] = React.useState(false)
+    const [isSubmittingp2, setIsSubmittingp2] = React.useState(false)
     const [createPrescription, setCreatePrescription] = React.useState(false)
     // eslint-disable-next-line no-unused-vars
     const [perPage, setPerPage] = React.useState(10)
@@ -86,9 +104,23 @@ const ViewPatientPrescription = () => {
         totalAllItems: 0,
         totalPages: 0,
     })
+    const [ppDateType, setPPDateType] = React.useState('Monthly')
+    const [Statuses, setStatuses] = React.useState('')
     const [prescriptionEditDetails, setPrescriptionEditDetails] =
         React.useState(null)
     const [EditDetails, setEditDetails] = React.useState(false)
+
+    //refill request
+    const [refillModal, setRefillModal] = React.useState(false)
+    const [refillDetails, setRefillDetails] = React.useState(null)
+    const activateRefill = (data) => {
+        setRefillDetails(() => data)
+        setRefillModal(() => true)
+    }
+    const cancelRefillUpload = () => {
+        setRefillDetails(() => null)
+        setRefillModal(() => false)
+    }
 
     const activateEditDetails = (data) => {
         setPrescriptionEditDetails(() => data)
@@ -96,6 +128,7 @@ const ViewPatientPrescription = () => {
     }
 
     const cancelEditUpload = () => {
+        setPrescriptionEditDetails(() => null)
         setEditDetails(() => false)
     }
     const cancelSubmissionUpload = () => {
@@ -107,12 +140,44 @@ const ViewPatientPrescription = () => {
         drugName: yup.string().required('name is required'),
         genericName: yup.string().required('name is required'),
         drugclass: yup.string().required('class is required'),
+        prescribed: yup.string().required('prescription is required'),
     })
+
+    //validation schema
+    const validationSchemaRefill = yup.object().shape({
+        id: yup.string().required('id is required'),
+        pcbId: yup.string().required('required'),
+    })
+
+    React.useEffect(() => {
+        Cookies.set('ppDatetype', ppDateType)
+    }, [ppDateType])
+
+    React.useEffect(() => {
+        socket.on('update-prescription', (data) => {
+            if (
+                data.actions === 'request-prescription-pull' &&
+                data.data === params.id
+            ) {
+                dispatch(GetIndividualPrescriptionSummary(params))
+                dispatch(GetIndividualPatient(params))
+            }
+        })
+
+        return () => {
+            socket.off('update-prescription')
+            //socket.disconnect()
+            //LocalSockets.removeAllListeners('update-dash-vitals')
+
+            // io.disconnect()
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [dispatch, socket])
 
     React.useEffect(() => {
         dispatch(GetIndividualPrescriptionSummary(params))
         dispatch(GetIndividualPatient(params))
-    }, [params, dispatch])
+    }, [params, dispatch, ppDateType])
 
     const {
         isError,
@@ -127,20 +192,30 @@ const ViewPatientPrescription = () => {
         if (isError) {
             if (helperFunctions !== null) {
                 helperFunctions.setSubmitting(false)
-
+                setHelperFunctions(() => null)
+                toast({
+                    position: 'top',
+                    title: message,
+                    status: 'error',
+                    duration: 10000,
+                    isClosable: true,
+                })
                 setIsSubmittingp(false)
+                dispatch(reset())
+            } else {
+                toast({
+                    position: 'top',
+                    title: message,
+                    status: 'error',
+                    duration: 10000,
+                    isClosable: true,
+                })
+                setIsSubmittingp(false)
+                dispatch(reset())
             }
-            toast({
-                position: 'top',
-                title: message,
-                status: 'error',
-                duration: 10000,
-                isClosable: true,
-            })
-            dispatch(reset())
         }
 
-        if (isSuccess && isSubmittingp) {
+        if (isSuccess && message) {
             if (helperFunctions !== null) {
                 toast({
                     position: 'top',
@@ -152,18 +227,41 @@ const ViewPatientPrescription = () => {
 
                 helperFunctions.resetForm()
                 helperFunctions.setSubmitting(false)
-                setIsSubmittingp(false)
-                setHelperFunctions(null)
+                setHelperFunctions(() => null)
+                setIsSubmittingp(() => false)
+                 setIsSubmittingp1(() => false)
+                  setIsSubmittingp2(() => false)
+                setRefillModal(() => false)
+                setRefillModal(() => false)
+                setEditDetails(() => false)
+                setPrescriptionEditDetails(() => null)
+                // setEditDetails(() => false)
+                dispatch(reset())
             }
+            setIsSubmittingp(() => false)
             dispatch(reset())
         }
+
+       
+
+       
+        dispatch(reset())
+        //setIsSubmittingp2(() => false)
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isError, isSuccess, message, dispatch])
+    }, [isError, isSuccess, message])
 
     //paginate the all items
     React.useEffect(() => {
-        let allQueriedItems = individualPatient.prescription.filter((data) => {
-            return data
+        let allQueriedItems = []
+
+        allQueriedItems = individualPatient.prescription.filter((data) => {
+            if (Statuses === '') {
+                return data
+            } else {
+                if (data.status === Statuses) {
+                    return data
+                }
+            }
         })
 
         const allItemsCollected = allQueriedItems
@@ -192,7 +290,7 @@ const ViewPatientPrescription = () => {
             totalPages: pageLength,
         })
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [individualPatient.prescription])
+    }, [individualPatient.prescription, Statuses])
 
     const handlePrev = () => {
         if (allDisplayData.currentPage - 1 >= 1) {
@@ -318,26 +416,53 @@ const ViewPatientPrescription = () => {
                                 direction='row'
                                 alignItems='center'
                                 spacing='15px'>
-                                <SelectorDropDown
-                                    direction='row'
-                                    className='month'>
-                                    <Box w='70%' className='selector_text'>
-                                        <Text>Monthly</Text>
-                                    </Box>
+                                <Menu>
+                                    <MenuButton>
+                                        <SelectorDropDown
+                                            direction='row'
+                                            className='month'>
+                                            <Box
+                                                w='70%'
+                                                className='selector_text'>
+                                                <Text>
+                                                    {ppDateType === 'Monthly'
+                                                        ? 'Monthly'
+                                                        : ppDateType}
+                                                </Text>
+                                            </Box>
 
-                                    <Box w='30%' className='selector_icon'>
-                                        <Box>
-                                            <Icon
-                                                icon='material-symbols:arrow-back-ios-new'
-                                                color='#616569'
-                                                rotate={1}
-                                                hFlip={true}
-                                                vFlip={true}
-                                                width={'12'}
-                                            />
-                                        </Box>
-                                    </Box>
-                                </SelectorDropDown>
+                                            <Box
+                                                w='30%'
+                                                className='selector_icon'>
+                                                <Box>
+                                                    <Icon
+                                                        icon='material-symbols:arrow-back-ios-new'
+                                                        color='#616569'
+                                                        rotate={1}
+                                                        hFlip={true}
+                                                        vFlip={true}
+                                                        width={'12'}
+                                                    />
+                                                </Box>
+                                            </Box>
+                                        </SelectorDropDown>
+                                    </MenuButton>
+
+                                    <MenuList>
+                                        <MenuItem
+                                            onClick={() =>
+                                                setPPDateType(() => 'Monthly')
+                                            }>
+                                            Monthly
+                                        </MenuItem>
+                                        <MenuItem
+                                            onClick={() =>
+                                                setPPDateType(() => 'Weekly')
+                                            }>
+                                            Weekly
+                                        </MenuItem>
+                                    </MenuList>
+                                </Menu>
                             </Stack>
                         </TableHeadWrapper>
 
@@ -409,26 +534,59 @@ const ViewPatientPrescription = () => {
                                 direction='row'
                                 alignItems='center'
                                 spacing='15px'>
-                                <SelectorDropDown
-                                    direction='row'
-                                    className='month'>
-                                    <Box w='70%' className='selector_text'>
-                                        <Text>All Status</Text>
-                                    </Box>
+                                <Menu>
+                                    <MenuButton>
+                                        <SelectorDropDown
+                                            direction='row'
+                                            className='month'>
+                                            <Box
+                                                w='70%'
+                                                className='selector_text'>
+                                                <Text>
+                                                    {Statuses !== ''
+                                                        ? Statuses
+                                                        : 'All Status'}
+                                                </Text>
+                                            </Box>
 
-                                    <Box w='30%' className='selector_icon'>
-                                        <Box>
-                                            <Icon
-                                                icon='material-symbols:arrow-back-ios-new'
-                                                color='#616569'
-                                                rotate={1}
-                                                hFlip={true}
-                                                vFlip={true}
-                                                width={'12'}
-                                            />
-                                        </Box>
-                                    </Box>
-                                </SelectorDropDown>
+                                            <Box
+                                                w='30%'
+                                                className='selector_icon'>
+                                                <Box>
+                                                    <Icon
+                                                        icon='material-symbols:arrow-back-ios-new'
+                                                        color='#616569'
+                                                        rotate={1}
+                                                        hFlip={true}
+                                                        vFlip={true}
+                                                        width={'12'}
+                                                    />
+                                                </Box>
+                                            </Box>
+                                        </SelectorDropDown>
+                                    </MenuButton>
+
+                                    <MenuList>
+                                        <MenuItem
+                                            onClick={() =>
+                                                setStatuses(() => '')
+                                            }>
+                                            All Status
+                                        </MenuItem>
+                                        <MenuItem
+                                            onClick={() =>
+                                                setStatuses(() => 'active')
+                                            }>
+                                            Active
+                                        </MenuItem>
+                                        <MenuItem
+                                            onClick={() =>
+                                                setStatuses(() => 'inactive')
+                                            }>
+                                            Inactive
+                                        </MenuItem>
+                                    </MenuList>
+                                </Menu>
 
                                 <NewButton
                                     onClick={() =>
@@ -477,6 +635,18 @@ const ViewPatientPrescription = () => {
                                             <>
                                                 {allDisplayData.items.map(
                                                     (data, index) => {
+                                                        let createdDate =
+                                                            moment(
+                                                                new Date(
+                                                                    data.lastPrescribed
+                                                                )
+                                                            )
+                                                                .tz(
+                                                                    'Africa/Nairobi'
+                                                                )
+                                                                .format(
+                                                                    'DD MMM YYYY h:mm a'
+                                                                )
                                                         return (
                                                             <Tr
                                                                 className={`table_row `}
@@ -492,7 +662,6 @@ const ViewPatientPrescription = () => {
                                                                 </Td>
 
                                                                 <Td
-                                                                    minW='150px'
                                                                     maxW='150px'
                                                                     className='studentName'
                                                                     style={{
@@ -506,10 +675,12 @@ const ViewPatientPrescription = () => {
                                                                     }
                                                                 </Td>
                                                                 <Td
-                                                                    maxW='250px'
+                                                                    maxW='150px'
                                                                     style={{
                                                                         fontWeight: 500,
                                                                         color: '#15151D',
+                                                                        fontSize:
+                                                                            '13px',
                                                                     }}>
                                                                     {
                                                                         data.genericName
@@ -521,34 +692,51 @@ const ViewPatientPrescription = () => {
                                                                     style={{
                                                                         fontWeight: 500,
                                                                         color: '#15151D',
+                                                                        fontSize:
+                                                                            '13px',
                                                                     }}>
                                                                     {
                                                                         data.drugclass
                                                                     }
                                                                 </Td>
+
                                                                 <Td
                                                                     maxW='250px'
                                                                     style={{
                                                                         fontWeight: 500,
                                                                         color: '#15151D',
+                                                                        fontSize:
+                                                                            '13px',
                                                                     }}>
                                                                     {
-                                                                        data.lastPrescribed
+                                                                        data.prescribed
                                                                     }
                                                                 </Td>
                                                                 <Td
-                                                                    maxW='250px'
+                                                                    maxW='200px'
                                                                     style={{
                                                                         fontWeight: 500,
                                                                         color: '#15151D',
+                                                                        fontSize:
+                                                                            '13px',
                                                                     }}>
-                                                                    {data.status ===
-                                                                    'false'
-                                                                        ? 'Inactive'
-                                                                        : 'active'}
+                                                                    {
+                                                                        createdDate
+                                                                    }
                                                                 </Td>
                                                                 <Td
-                                                                    maxW='250px'
+                                                                    maxW='100px'
+                                                                    style={{
+                                                                        fontWeight: 500,
+                                                                        color: '#15151D',
+                                                                        fontSize:
+                                                                            '13px',
+                                                                    }}>
+                                                                    {
+                                                                        data.status
+                                                                    }
+                                                                </Td>
+                                                                <Td
                                                                     style={{
                                                                         fontWeight: 500,
                                                                         color: '#15151D',
@@ -560,7 +748,7 @@ const ViewPatientPrescription = () => {
                                                                     }
                                                                 </Td>
 
-                                                                <Td>
+                                                                <Td maxW='100px'>
                                                                     <Menu>
                                                                         <MenuButton>
                                                                             <ViewButton
@@ -603,12 +791,37 @@ const ViewPatientPrescription = () => {
                                                                                     )
                                                                                 }>
                                                                                 Update
+                                                                                Prescription
                                                                             </MenuItem>
                                                                             <MenuItem className='menulist_item'>
-                                                                                Refill
+                                                                                View
+                                                                                all
+                                                                                Refills
                                                                             </MenuItem>
                                                                         </MenuList>
                                                                     </Menu>
+                                                                </Td>
+
+                                                                <Td maxW='100px'>
+                                                                    <ViewButton
+                                                                        onClick={() =>
+                                                                            activateRefill(
+                                                                                {
+                                                                                    pcbId: data.prescriptionId,
+                                                                                    id: data._id,
+                                                                                }
+                                                                            )
+                                                                        }
+                                                                        direction='row'
+                                                                        className='month'>
+                                                                        <Box
+                                                                            w='70%'
+                                                                            className='viewbutton_text'>
+                                                                            <Text>
+                                                                                refill
+                                                                            </Text>
+                                                                        </Box>
+                                                                    </ViewButton>
                                                                 </Td>
                                                             </Tr>
                                                         )
@@ -725,7 +938,8 @@ const ViewPatientPrescription = () => {
                                 drugName: '',
                                 genericName: '',
                                 drugclass: '',
-                                active: 'false',
+                                prescribed: '',
+                                active: 'inactive',
                             }}
                             validationSchema={validationSchema}
                             onSubmit={(values, helpers) => {
@@ -734,8 +948,9 @@ const ViewPatientPrescription = () => {
                                     ...values,
                                     id: params.id,
                                 }
-                                dispatch(CreatePrescription(alldetails))
                                 setIsSubmittingp(() => true)
+                                dispatch(CreatePrescription(alldetails))
+
                                 //console.log('values', values)
                             }}>
                             {({
@@ -892,6 +1107,42 @@ const ViewPatientPrescription = () => {
                                                                 ) : null}
                                                             </Box>
                                                         </Stack>
+
+                                                        <Stack
+                                                            direction='column'
+                                                            spacing='11px'>
+                                                            <Box className='content_title'>
+                                                                Prescription
+                                                            </Box>
+
+                                                            <Box
+                                                                className='form_input'
+                                                                w='100%'
+                                                                minW='200px'>
+                                                                <Input
+                                                                    bg='#ffffff'
+                                                                    placeholder='e.g 2 x 1'
+                                                                    size='md'
+                                                                    type='text'
+                                                                    name='prescribed'
+                                                                    onChange={
+                                                                        handleChange
+                                                                    }
+                                                                    value={
+                                                                        values.prescribed
+                                                                    }
+                                                                />
+
+                                                                {errors &&
+                                                                errors.prescribed ? (
+                                                                    <ErrorMsg>
+                                                                        {
+                                                                            errors.prescribed
+                                                                        }
+                                                                    </ErrorMsg>
+                                                                ) : null}
+                                                            </Box>
+                                                        </Stack>
                                                     </Stack>
                                                 </Stack>
                                             </Stack>
@@ -926,12 +1177,13 @@ const ViewPatientPrescription = () => {
                                                                         '15px'
                                                                     }
                                                                     alignItems='center'>
-                                                                    <Box>
+                                                                    <Box m='0'>
                                                                         <Switch
+                                                                            size='md'
                                                                             colorScheme='teal'
                                                                             isChecked={
                                                                                 values.active ===
-                                                                                'false'
+                                                                                'inactive'
                                                                                     ? false
                                                                                     : true
                                                                             }
@@ -943,8 +1195,8 @@ const ViewPatientPrescription = () => {
                                                                                         .target
                                                                                         .checked ===
                                                                                     true
-                                                                                        ? 'true'
-                                                                                        : 'false'
+                                                                                        ? 'active'
+                                                                                        : 'inactive'
 
                                                                                 setFieldValue(
                                                                                     'active',
@@ -1024,8 +1276,9 @@ const ViewPatientPrescription = () => {
                                 let alldetails = {
                                     ...values,
                                 }
+                                setIsSubmittingp1(() => true)
                                 dispatch(EditPrescription(alldetails))
-                                setIsSubmittingp(() => true)
+
                                 //console.log('values', values)
                             }}>
                             {({
@@ -1182,6 +1435,42 @@ const ViewPatientPrescription = () => {
                                                                 ) : null}
                                                             </Box>
                                                         </Stack>
+
+                                                        <Stack
+                                                            direction='column'
+                                                            spacing='11px'>
+                                                            <Box className='content_title'>
+                                                                Prescription
+                                                            </Box>
+
+                                                            <Box
+                                                                className='form_input'
+                                                                w='100%'
+                                                                minW='200px'>
+                                                                <Input
+                                                                    bg='#ffffff'
+                                                                    placeholder='e.g 2 x 1'
+                                                                    size='md'
+                                                                    type='text'
+                                                                    name='prescribed'
+                                                                    onChange={
+                                                                        handleChange
+                                                                    }
+                                                                    value={
+                                                                        values.prescribed
+                                                                    }
+                                                                />
+
+                                                                {errors &&
+                                                                errors.prescribed ? (
+                                                                    <ErrorMsg>
+                                                                        {
+                                                                            errors.prescribed
+                                                                        }
+                                                                    </ErrorMsg>
+                                                                ) : null}
+                                                            </Box>
+                                                        </Stack>
                                                     </Stack>
                                                 </Stack>
                                             </Stack>
@@ -1221,7 +1510,7 @@ const ViewPatientPrescription = () => {
                                                                         size='md'
                                                                         isChecked={
                                                                             values.active ===
-                                                                            'false'
+                                                                            'inactive'
                                                                                 ? false
                                                                                 : true
                                                                         }
@@ -1233,8 +1522,8 @@ const ViewPatientPrescription = () => {
                                                                                     .target
                                                                                     .checked ===
                                                                                 true
-                                                                                    ? 'true'
-                                                                                    : 'false'
+                                                                                    ? 'active'
+                                                                                    : 'inactive'
 
                                                                             setFieldValue(
                                                                                 'active',
@@ -1277,7 +1566,106 @@ const ViewPatientPrescription = () => {
                                             <Button
                                                 disabled={!(isValid && dirty)}
                                                 isLoading={
-                                                    isSubmittingp ? true : false
+                                                    isSubmittingp1
+                                                        ? true
+                                                        : false
+                                                }
+                                                className='apply_button'
+                                                type='submit'>
+                                                Confirm
+                                            </Button>
+                                        </Stack>
+                                    </PopupForm>
+                                </Form>
+                            )}
+                        </Formik>
+                    </ModalBody>
+                </ModalContent>
+            </Modal>
+
+            {/** refills */}
+            <Modal
+                size=''
+                isOpen={refillModal}
+                p='0'
+                w=''
+                onClose={() => cancelRefillUpload()}>
+                <ModalOverlay w='100vw' overflowY={'visible'} p='0' />
+                <ModalContent p='0' w='50%'>
+                    <ModalBody p='0'>
+                        <Formik
+                            initialValues={refillDetails}
+                            validationSchema={validationSchemaRefill}
+                            onSubmit={(values, helpers) => {
+                                setHelperFunctions(helpers)
+                                let alldetails = {
+                                    ...values,
+                                }
+                                setIsSubmittingp2(() => true)
+                                dispatch(CreateRefill(alldetails))
+
+                                //console.log('values', values)
+                            }}>
+                            {({ values, errors }) => (
+                                <Form>
+                                    <PopupForm
+                                        p='0px'
+                                        direction='column'
+                                        spacing='0'
+                                        justifyContent='space-between'>
+                                        <Stack
+                                            pb='50px'
+                                            direction='column'
+                                            spacing={'10px'}
+                                            h='100%'>
+                                            <Stack
+                                                className='pop_title'
+                                                direction='row'
+                                                w=''
+                                                alignItems='center'
+                                                justifyContent='space-between'>
+                                                <Box>
+                                                    <h1>Refill Prescription</h1>
+                                                </Box>
+                                            </Stack>
+
+                                            <Stack
+                                                p='10px 20px 10px 20px'
+                                                spacing='20px'>
+                                                <Text>
+                                                    Do you want to add a refill
+                                                    for prescription -{' '}
+                                                    {values.pcbId}?
+                                                </Text>
+                                            </Stack>
+                                        </Stack>
+                                        <Stack
+                                            p='0px 20px'
+                                            h='65px'
+                                            bg='#ffffff'
+                                            direction='row'
+                                            borderTop='1px solid #E9EDF5'
+                                            borderRadius='0 0 8px 8px'
+                                            justifyContent='flex-end'
+                                            alignItems='center'>
+                                            <Button
+                                                variant='outline'
+                                                className='cancel_button'
+                                                onClick={() =>
+                                                    cancelRefillUpload()
+                                                }>
+                                                Cancel
+                                            </Button>
+                                            <Button
+                                                disabled={
+                                                    isSubmittingp2
+                                                        ? true
+                                                        : false
+                                                }
+                                                isLoading={
+                                                    isSubmittingp2
+                                                        ? true
+                                                        : false
                                                 }
                                                 className='apply_button'
                                                 type='submit'>
@@ -1820,6 +2208,10 @@ const PopupForm = styled(Stack)`
         &:hover {
             background: #3e66fb;
         }
+    }
+
+    .chakra-switch__thumb {
+        margin: 0 !important;
     }
 `
 

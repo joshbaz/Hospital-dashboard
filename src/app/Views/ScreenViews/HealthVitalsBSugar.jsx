@@ -1,3 +1,4 @@
+/* eslint-disable array-callback-return */
 import React from 'react'
 import {
     Box,
@@ -13,6 +14,10 @@ import {
     Td,
     Tbody,
     useToast,
+    Menu,
+    MenuButton,
+    MenuList,
+    MenuItem,
 } from '@chakra-ui/react'
 import styled from 'styled-components'
 import TopBar from '../../../components/common/Navigation/TopBar'
@@ -49,6 +54,7 @@ const TableHeadNewData2 = [
     },
 ]
 
+let io = initSocketConnection()
 const HealthVitalsBSugar = () => {
     let dispatch = useDispatch()
     let toast = useToast()
@@ -75,18 +81,29 @@ const HealthVitalsBSugar = () => {
         totalPages: 0,
     })
 
+    const [sortBy, setSortBy] = React.useState('')
+    const [Statuses, setStatuses] = React.useState('')
+
     const { isError, isSuccess, message, bsItems } = useSelector(
         (state) => state.patient
     )
 
     React.useEffect(() => {
-        dispatch(GetAllBSVitals())
-        const io = initSocketConnection()
         io.on('update-dash-vitals', (data) => {
             if (data.actions === 'request-vitals-bg') {
                 dispatch(GetAllBSVitals())
             }
         })
+
+        return () => {
+            io.off('update-dash-vitals')
+            io.removeAllListeners('update-dash-vitals')
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [io])
+
+    React.useEffect(() => {
+        dispatch(GetAllBSVitals())
     }, [dispatch])
 
     React.useEffect(() => {
@@ -106,9 +123,61 @@ const HealthVitalsBSugar = () => {
 
     //paginate the all items
     React.useEffect(() => {
-        let allQueriedItems = bsItems.items.filter((data) => {
-            return data
-        })
+        let allQueriedItems = []
+
+        if (sortBy === '') {
+            allQueriedItems = bsItems.items.filter((data) => {
+                if (Statuses === '') {
+                    return data
+                } else {
+                    if (data.status === Statuses) {
+                        return data
+                    }
+                }
+            })
+        } else {
+            let sortItems = bsItems.items.filter((data) => {
+                if (Statuses === '') {
+                    return data
+                } else {
+                    if (data.status === Statuses) {
+                        return data
+                    }
+                }
+            })
+
+            if (sortBy === 'Name-A') {
+                allQueriedItems = sortItems.sort((a, b) => {
+                    if (
+                        a.patientUniqueId.patientName >
+                        b.patientUniqueId.patientName
+                    ) {
+                        return -1
+                    }
+                })
+            }
+
+            if (sortBy === 'Name-D') {
+                allQueriedItems = sortItems.sort((a, b) => {
+                    if (
+                        a.patientUniqueId.patientName <
+                        b.patientUniqueId.patientName
+                    ) {
+                        return -1
+                    } else {
+                        return 0
+                    }
+                })
+            }
+
+            if (sortBy === 'Status') {
+                allQueriedItems = sortItems.sort((a, b) => {
+                    if (a.status < b.status) {
+                        return -1
+                    }
+                })
+            }
+        }
 
         const allItemsCollected = allQueriedItems
 
@@ -136,27 +205,126 @@ const HealthVitalsBSugar = () => {
             totalPages: pageLength,
         })
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [bsItems])
+    }, [bsItems, sortBy, Statuses])
 
     /** paginate search */
     React.useEffect(() => {
         // eslint-disable-next-line array-callback-return
-        const searchResults = allDisplayData.allItems.filter((data) => {
-            let serachedValue =
-                searchValue !== '' ? searchValue.toLowerCase() : searchValue
-            let name = data.patientUniqueId.patientName
-                ? data.patientUniqueId.patientName.toLowerCase()
-                : ''
-            let patientId = data.patientUniqueId.patientId
-                ? data.patientUniqueId.patientId.toLowerCase()
-                : ''
-            if (name.includes(serachedValue)) {
-                return data
-            } else if (patientId.includes(serachedValue)) {
-                return data
-            } else {
+
+        let searchResults = []
+        if (sortBy === '') {
+            searchResults = bsItems.items.filter((data) => {
+                if (Statuses === '') {
+                    let serachedValue =
+                        searchValue !== ''
+                            ? searchValue.toLowerCase()
+                            : searchValue
+                    let name = data.patientUniqueId.patientName
+                        ? data.patientUniqueId.patientName.toLowerCase()
+                        : ''
+                    let patientId = data.patientUniqueId.patientId
+                        ? data.patientUniqueId.patientId.toLowerCase()
+                        : ''
+                    if (name.includes(serachedValue)) {
+                        return data
+                    } else if (patientId.includes(serachedValue)) {
+                        return data
+                    } else {
+                    }
+                } else {
+                    if (data.status === Statuses) {
+                        let serachedValue =
+                            searchValue !== ''
+                                ? searchValue.toLowerCase()
+                                : searchValue
+                        let name = data.patientUniqueId.patientName
+                            ? data.patientUniqueId.patientName.toLowerCase()
+                            : ''
+                        let patientId = data.patientUniqueId.patientId
+                            ? data.patientUniqueId.patientId.toLowerCase()
+                            : ''
+                        if (name.includes(serachedValue)) {
+                            return data
+                        } else if (patientId.includes(serachedValue)) {
+                            return data
+                        } else {
+                        }
+                    }
+                }
+            })
+        } else {
+            let sortItems = bsItems.items.filter((data) => {
+                if (Statuses === '') {
+                    let serachedValue =
+                        searchValue !== ''
+                            ? searchValue.toLowerCase()
+                            : searchValue
+                    let name = data.patientUniqueId.patientName
+                        ? data.patientUniqueId.patientName.toLowerCase()
+                        : ''
+                    let patientId = data.patientUniqueId.patientId
+                        ? data.patientUniqueId.patientId.toLowerCase()
+                        : ''
+                    if (name.includes(serachedValue)) {
+                        return data
+                    } else if (patientId.includes(serachedValue)) {
+                        return data
+                    } else {
+                    }
+                } else {
+                    if (data.status === Statuses) {
+                        let serachedValue =
+                            searchValue !== ''
+                                ? searchValue.toLowerCase()
+                                : searchValue
+                        let name = data.patientUniqueId.patientName
+                            ? data.patientUniqueId.patientName.toLowerCase()
+                            : ''
+                        let patientId = data.patientUniqueId.patientId
+                            ? data.patientUniqueId.patientId.toLowerCase()
+                            : ''
+                        if (name.includes(serachedValue)) {
+                            return data
+                        } else if (patientId.includes(serachedValue)) {
+                            return data
+                        } else {
+                        }
+                    }
+                }
+            })
+
+            if (sortBy === 'Name-A') {
+                searchResults = sortItems.sort((a, b) => {
+                    if (
+                        a.patientUniqueId.patientName >
+                        b.patientUniqueId.patientName
+                    ) {
+                        return -1
+                    }
+                })
             }
-        })
+
+            if (sortBy === 'Name-D') {
+                searchResults = sortItems.sort((a, b) => {
+                    if (
+                        a.patientUniqueId.patientName <
+                        b.patientUniqueId.patientName
+                    ) {
+                        return -1
+                    } else {
+                        return 0
+                    }
+                })
+            }
+
+            if (sortBy === 'Status') {
+                searchResults = sortItems.sort((a, b) => {
+                    if (a.status < b.status) {
+                        return -1
+                    }
+                })
+            }
+        }
 
         const allItemsCollected = searchResults
 
@@ -186,7 +354,7 @@ const HealthVitalsBSugar = () => {
             totalPages: pageLength,
         })
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [searchValue])
+    }, [searchValue, sortBy, Statuses, bsItems])
 
     //handle previous button
     const handlePrev = () => {
@@ -372,47 +540,138 @@ const HealthVitalsBSugar = () => {
                                 direction='row'
                                 alignItems='center'
                                 spacing='15px'>
-                                <SelectorDropDown
-                                    direction='row'
-                                    className='month'>
-                                    <Box w='70%' className='selector_text'>
-                                        <Text>All Status</Text>
-                                    </Box>
+                                <Menu>
+                                    <MenuButton>
+                                        <SelectorDropDown
+                                            direction='row'
+                                            className='month'>
+                                            <Box
+                                                w='70%'
+                                                className='selector_text'>
+                                                <Text>
+                                                    {Statuses !== ''
+                                                        ? Statuses
+                                                        : 'All Status'}
+                                                </Text>
+                                            </Box>
 
-                                    <Box w='30%' className='selector_icon'>
-                                        <Box>
-                                            <Icon
-                                                icon='material-symbols:arrow-back-ios-new'
-                                                color='#616569'
-                                                rotate={1}
-                                                hFlip={true}
-                                                vFlip={true}
-                                                width={'12'}
-                                            />
-                                        </Box>
-                                    </Box>
-                                </SelectorDropDown>
+                                            <Box
+                                                w='30%'
+                                                className='selector_icon'>
+                                                <Box>
+                                                    <Icon
+                                                        icon='material-symbols:arrow-back-ios-new'
+                                                        color='#616569'
+                                                        rotate={1}
+                                                        hFlip={true}
+                                                        vFlip={true}
+                                                        width={'12'}
+                                                    />
+                                                </Box>
+                                            </Box>
+                                        </SelectorDropDown>
+                                    </MenuButton>
 
-                                <SelectorDropDown
-                                    direction='row'
-                                    className='month'>
-                                    <Box w='70%' className='selector_text'>
-                                        <Text>Sort By</Text>
-                                    </Box>
+                                    <MenuList>
+                                        <MenuItem
+                                            onClick={() =>
+                                                setStatuses(() => '')
+                                            }>
+                                            All Status
+                                        </MenuItem>
+                                        <MenuItem
+                                            onClick={() =>
+                                                setStatuses(() => 'normal')
+                                            }>
+                                            Normal
+                                        </MenuItem>
+                                        <MenuItem
+                                            onClick={() =>
+                                                setStatuses(() => 'low')
+                                            }>
+                                            Low
+                                        </MenuItem>
+                                        <MenuItem
+                                            onClick={() =>
+                                                setStatuses(() => 'high')
+                                            }>
+                                            High
+                                        </MenuItem>
+                                        <MenuItem
+                                            onClick={() =>
+                                                setStatuses(
+                                                    () => 'critical low'
+                                                )
+                                            }>
+                                            Critical Low
+                                        </MenuItem>
+                                        <MenuItem
+                                            onClick={() =>
+                                                setStatuses(
+                                                    () => 'critical high'
+                                                )
+                                            }>
+                                            Critical High
+                                        </MenuItem>
+                                        <MenuItem
+                                            onClick={() =>
+                                                setStatuses(() => 'concern')
+                                            }>
+                                            Concern
+                                        </MenuItem>
+                                    </MenuList>
+                                </Menu>
 
-                                    <Box w='30%' className='selector_icon'>
-                                        <Box>
-                                            <Icon
-                                                icon='material-symbols:arrow-back-ios-new'
-                                                color='#616569'
-                                                rotate={1}
-                                                hFlip={true}
-                                                vFlip={true}
-                                                width={'12'}
-                                            />
-                                        </Box>
-                                    </Box>
-                                </SelectorDropDown>
+                                <Menu>
+                                    <MenuButton>
+                                        <SelectorDropDown
+                                            direction='row'
+                                            className='month'>
+                                            <Box
+                                                w='70%'
+                                                className='selector_text'>
+                                                <Text>
+                                                    {sortBy !== ''
+                                                        ? sortBy
+                                                        : 'Sort By'}
+                                                </Text>
+                                            </Box>
+
+                                            <Box
+                                                w='30%'
+                                                className='selector_icon'>
+                                                <Box>
+                                                    <Icon
+                                                        icon='material-symbols:arrow-back-ios-new'
+                                                        color='#616569'
+                                                        rotate={1}
+                                                        hFlip={true}
+                                                        vFlip={true}
+                                                        width={'12'}
+                                                    />
+                                                </Box>
+                                            </Box>
+                                        </SelectorDropDown>
+                                    </MenuButton>
+
+                                    <MenuList>
+                                        <MenuItem onClick={() => setSortBy('')}>
+                                            Sort By
+                                        </MenuItem>
+                                        <MenuItem
+                                            onClick={() => setSortBy('Name-A')}>
+                                            Name-Ascending
+                                        </MenuItem>
+                                        <MenuItem
+                                            onClick={() => setSortBy('Name-D')}>
+                                            Name-Descending
+                                        </MenuItem>
+                                        <MenuItem
+                                            onClick={() => setSortBy('Status')}>
+                                            Status
+                                        </MenuItem>
+                                    </MenuList>
+                                </Menu>
                             </Stack>
                         </TableHeadWrapper>
 
@@ -560,7 +819,7 @@ const HealthVitalsBSugar = () => {
                                                                                         : ''
                                                                                 } ${
                                                                                     data.status ===
-                                                                                        'critical low' ||
+                                                                                        'low' ||
                                                                                     data.status ===
                                                                                         'critical low' ||
                                                                                     data.status ===
@@ -706,7 +965,7 @@ const HealthVitalsBSugar = () => {
                                                                                         : ''
                                                                                 } ${
                                                                                     data.status ===
-                                                                                        'critical low' ||
+                                                                                        'low' ||
                                                                                     data.status ===
                                                                                         'critical low' ||
                                                                                     data.status ===

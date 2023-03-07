@@ -93,6 +93,31 @@ const editPrescription = async (details) => {
     }
 }
 
+
+//Creation of  prescription refill
+const createRefill = async (details) => {
+    try {
+        let getToken = Cookies.get('_tk')
+        const response = await axios.post(
+            `${BASE_API_}/patient/v1/refill/create`,
+            details,
+            {
+                headers: {
+                    Authorization: 'Brearer ' + getToken,
+                },
+            }
+        )
+
+        return {
+            message: response.data,
+            type: 'success',
+        }
+    } catch (error) {
+        let errorResult = errorFunction(error)
+        return errorResult
+    }
+}
+
 //get all patients
 const getAllPatients = async () => {
     try {
@@ -118,8 +143,9 @@ const getAllPatients = async () => {
 const getIndividualVitalSummary = async (details) => {
     try {
         let getToken = Cookies.get('_tk')
+        let getvtype = Cookies.get('vDatetype')
         const response = await axios.get(
-            `${BASE_API_}/patient/v1/individual/vitalsummary/${details.id}`,
+            `${BASE_API_}/patient/v1/individual/vitalsummary/${details.id}/${getvtype}`,
             {
                 headers: {
                     Authorization: 'Brearer ' + getToken,
@@ -141,8 +167,9 @@ const getIndividualVitalSummary = async (details) => {
 const getIndividualPrescriptionSummary = async (details) => {
     try {
         let getToken = Cookies.get('_tk')
+        let getptype = Cookies.get('ppDatetype')
         const response = await axios.get(
-            `${BASE_API_}/patient/v1/individual/prescriptionsummary/${details.id}`,
+            `${BASE_API_}/patient/v1/individual/prescriptionsummary/${details.id}/${getptype}`,
             {
                 headers: {
                     Authorization: 'Brearer ' + getToken,
@@ -324,11 +351,11 @@ const getMainSummaryVitals = async () => {
 }
 
 /** main monthly vitals summary */
-const getMainMonthlySummaryVitals = async () => {
+const getMainMonthlySummaryVitals = async (details) => {
     try {
         let getToken = Cookies.get('_tk')
         const response = await axios.get(
-            `${BASE_API_}/patient/v1/main/monthlyvitals/summary`,
+            `${BASE_API_}/patient/v1/main/monthlyvitals/summary/${details}`,
             {
                 headers: {
                     Authorization: 'Brearer ' + getToken,
@@ -370,11 +397,12 @@ const getMainDashboardReports = async () => {
 }
 
 /** dashboard main pie graph */
-const getMaindashboardPieGraph = async () => {
+const getMaindashboardPieGraph = async (details) => {
     try {
         let getToken = Cookies.get('_tk')
+        let ptype = Cookies.get('ptype')
         const response = await axios.get(
-            `${BASE_API_}/patient/v1/dashboard/graph/circular/summary`,
+            `${BASE_API_}/patient/v1/dashboard/graph/circular/summary/${ptype}`,
             {
                 headers: {
                     Authorization: 'Brearer ' + getToken,
@@ -396,8 +424,9 @@ const getMaindashboardPieGraph = async () => {
 const getMaindashboardBarGraph = async () => {
     try {
         let getToken = Cookies.get('_tk')
+        let bartype = Cookies.get('bartype')
         const response = await axios.get(
-            `${BASE_API_}/patient/v1/dashboard/graph/bar/summary`,
+            `${BASE_API_}/patient/v1/dashboard/graph/bar/summary/${bartype}`,
             {
                 headers: {
                     Authorization: 'Brearer ' + getToken,
@@ -433,6 +462,7 @@ const patientService = {
     getMainDashboardReports,
     getMaindashboardPieGraph,
     getMaindashboardBarGraph,
+    createRefill,
 }
 
 export default patientService

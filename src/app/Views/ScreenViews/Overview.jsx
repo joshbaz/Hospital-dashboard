@@ -1,5 +1,14 @@
 import React from 'react'
-import { Box, Stack, Text, useToast } from '@chakra-ui/react'
+import {
+    Box,
+    Stack,
+    Text,
+    useToast,
+    Menu,
+    MenuButton,
+    MenuList,
+    MenuItem,
+} from '@chakra-ui/react'
 import styled from 'styled-components'
 import TopBar from '../../../components/common/Navigation/TopBar'
 import Navigation from '../../../components/common/Navigation/Navigation'
@@ -22,22 +31,32 @@ import {
     reset,
 } from '../../store/features/patients/patientSlice'
 import { useDispatch, useSelector } from 'react-redux'
-import { initSocketConnection } from '../../../socketio.service'
-
+import Cookies from 'js-cookie'
+//import { initSocketConnection } from '../../../socketio.service'
+import { io } from 'socket.io-client'
+import { BASE_API_ } from '../../../middleware/base_url.config'
+let socket = io(BASE_API_, {
+    transports: ['websocket'],
+    upgrade: false,
+    //reconnection: false,
+})
 const Overview = () => {
     let dispatch = useDispatch()
     let toast = useToast()
+    const [pieDateType, setPieDateType] = React.useState('Monthly')
+    const [barDateType, setBarDateType] = React.useState('Monthly')
     const [pieData, setPieData] = React.useState([])
     const [barData, setBarData] = React.useState([])
 
     React.useEffect(() => {
-        dispatch(GetdashboardReports())
-        dispatch(GetdashboardPieGraph())
-        dispatch(GetdashboardBarGraph())
+        Cookies.set('ptype', pieDateType)
+    }, [pieDateType])
 
-        const io = initSocketConnection()
-
-        io.on('update-dash-vitals', (data) => {
+    React.useEffect(() => {
+        Cookies.set('bartype', barDateType)
+    }, [barDateType])
+    React.useState(() => {
+        socket.on('update-dash-vitals', (data) => {
             if (data.actions === 'request-vitals-bg') {
                 dispatch(GetdashboardReports())
                 dispatch(GetdashboardPieGraph())
@@ -51,7 +70,32 @@ const Overview = () => {
                 dispatch(GetdashboardReports())
                 dispatch(GetdashboardPieGraph())
             }
+
+            if (data.actions === 'request-new-patient') {
+                dispatch(GetdashboardReports())
+                dispatch(GetdashboardBarGraph())
+            }
         })
+
+        return () => {
+            socket.off('update-dash-vitals')
+            socket.disconnect()
+            //LocalSockets.removeAllListeners('update-dash-vitals')
+
+            // io.disconnect()
+        }
+    }, [dispatch])
+
+    React.useEffect(() => {
+        dispatch(GetdashboardPieGraph(pieDateType))
+    }, [pieDateType, dispatch])
+
+    React.useEffect(() => {
+        dispatch(GetdashboardBarGraph(barDateType))
+    }, [barDateType, dispatch])
+
+    React.useEffect(() => {
+        dispatch(GetdashboardReports())
     }, [dispatch])
 
     const {
@@ -356,26 +400,53 @@ const Overview = () => {
                                 spacing={'50px'}
                                 alignItems={'center'}
                                 justifyContent='flex-start'>
-                                <SelectorDropDown
-                                    direction='row'
-                                    className='month'>
-                                    <Box w='70%' className='selector_text'>
-                                        <Text>Monthly</Text>
-                                    </Box>
+                                <Menu>
+                                    <MenuButton>
+                                        <SelectorDropDown
+                                            direction='row'
+                                            className='month'>
+                                            <Box
+                                                w='70%'
+                                                className='selector_text'>
+                                                <Text>
+                                                    {pieDateType === 'Monthly'
+                                                        ? 'Monthly'
+                                                        : pieDateType}
+                                                </Text>
+                                            </Box>
 
-                                    <Box w='30%' className='selector_icon'>
-                                        <Box>
-                                            <Icon
-                                                icon='material-symbols:arrow-back-ios-new'
-                                                color='#616569'
-                                                rotate={1}
-                                                hFlip={true}
-                                                vFlip={true}
-                                                width={'12'}
-                                            />
-                                        </Box>
-                                    </Box>
-                                </SelectorDropDown>
+                                            <Box
+                                                w='30%'
+                                                className='selector_icon'>
+                                                <Box>
+                                                    <Icon
+                                                        icon='material-symbols:arrow-back-ios-new'
+                                                        color='#616569'
+                                                        rotate={1}
+                                                        hFlip={true}
+                                                        vFlip={true}
+                                                        width={'12'}
+                                                    />
+                                                </Box>
+                                            </Box>
+                                        </SelectorDropDown>
+                                    </MenuButton>
+
+                                    <MenuList>
+                                        <MenuItem
+                                            onClick={() =>
+                                                setPieDateType(() => 'Monthly')
+                                            }>
+                                            Monthly
+                                        </MenuItem>
+                                        <MenuItem
+                                            onClick={() =>
+                                                setPieDateType(() => 'Weekly')
+                                            }>
+                                            Weekly
+                                        </MenuItem>
+                                    </MenuList>
+                                </Menu>
 
                                 <Stack className='glegend' spacing='20px'>
                                     <LegendCardWrap h='56px'>
@@ -462,26 +533,58 @@ const Overview = () => {
                                         <Text>Average New Patients</Text>
                                     </Box>
 
-                                    <SelectorDropDown
-                                        direction='row'
-                                        className='month'>
-                                        <Box w='70%' className='selector_text'>
-                                            <Text>Monthly</Text>
-                                        </Box>
+                                    <Menu>
+                                        <MenuButton>
+                                            <SelectorDropDown
+                                                direction='row'
+                                                className='month'>
+                                                <Box
+                                                    w='70%'
+                                                    className='selector_text'>
+                                                    <Text>
+                                                        {barDateType ===
+                                                        'Monthly'
+                                                            ? barDateType
+                                                            : barDateType}
+                                                    </Text>
+                                                </Box>
 
-                                        <Box w='30%' className='selector_icon'>
-                                            <Box>
-                                                <Icon
-                                                    icon='material-symbols:arrow-back-ios-new'
-                                                    color='#616569'
-                                                    rotate={1}
-                                                    hFlip={true}
-                                                    vFlip={true}
-                                                    width={'12'}
-                                                />
-                                            </Box>
-                                        </Box>
-                                    </SelectorDropDown>
+                                                <Box
+                                                    w='30%'
+                                                    className='selector_icon'>
+                                                    <Box>
+                                                        <Icon
+                                                            icon='material-symbols:arrow-back-ios-new'
+                                                            color='#616569'
+                                                            rotate={1}
+                                                            hFlip={true}
+                                                            vFlip={true}
+                                                            width={'12'}
+                                                        />
+                                                    </Box>
+                                                </Box>
+                                            </SelectorDropDown>
+                                        </MenuButton>
+
+                                        <MenuList>
+                                            <MenuItem
+                                                onClick={() =>
+                                                    setBarDateType(
+                                                        () => 'Monthly'
+                                                    )
+                                                }>
+                                                Monthly
+                                            </MenuItem>
+                                            <MenuItem
+                                                onClick={() =>
+                                                    setBarDateType(
+                                                        () => 'Weekly'
+                                                    )
+                                                }>
+                                                Weekly
+                                            </MenuItem>
+                                        </MenuList>
+                                    </Menu>
                                 </Stack>
 
                                 <Stack w='100%' h='inherit'>

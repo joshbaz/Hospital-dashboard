@@ -1,3 +1,4 @@
+/* eslint-disable array-callback-return */
 import React from 'react'
 import {
     Box,
@@ -10,6 +11,10 @@ import {
     Td,
     Tbody,
     useToast,
+    Menu,
+    MenuButton,
+    MenuList,
+    MenuItem,
 } from '@chakra-ui/react'
 import styled from 'styled-components'
 import TopBar from '../../../components/common/Navigation/TopBar'
@@ -26,6 +31,14 @@ import {
 } from '../../store/features/patients/patientSlice'
 import { useDispatch, useSelector } from 'react-redux'
 import moment from 'moment-timezone'
+import Cookies from 'js-cookie'
+import { io } from 'socket.io-client'
+import { BASE_API_ } from '../../../middleware/base_url.config'
+let socket = io(BASE_API_, {
+    transports: ['websocket'],
+    upgrade: false,
+    //reconnection: false,
+})
 
 const TableHeadNewData = [
     {
@@ -58,11 +71,39 @@ const ViewPatientVitals = () => {
         totalAllItems: 0,
         totalPages: 0,
     })
+    const [vDateType, setVDateType] = React.useState('Monthly')
+    const [sortBy, setSortBy] = React.useState('')
+    const [Statuses, setStatuses] = React.useState('')
+
+    React.useEffect(() => {
+        Cookies.set('vDatetype', vDateType)
+    }, [vDateType])
+
+    React.useEffect(() => {
+        socket.on('update-dash-patient', (data) => {
+            if (
+                data.actions === 'request-vital-pull' &&
+                data.data === params.id
+            ) {
+                dispatch(GetIndividualVitalSummary(params))
+                dispatch(GetIndividualPatient(params))
+            }
+        })
+
+        return () => {
+            socket.off('update-dash-patient')
+            socket.disconnect()
+            //LocalSockets.removeAllListeners('update-dash-vitals')
+
+            // io.disconnect()
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [dispatch])
 
     React.useEffect(() => {
         dispatch(GetIndividualVitalSummary(params))
         dispatch(GetIndividualPatient(params))
-    }, [params, dispatch])
+    }, [params, dispatch, vDateType])
 
     const {
         isError,
@@ -89,9 +130,55 @@ const ViewPatientVitals = () => {
 
     //paginate the all items
     React.useEffect(() => {
-        let allQueriedItems = individualPatient.vitals.filter((data) => {
-            return data
-        })
+        let allQueriedItems = []
+
+        if (sortBy === '') {
+            allQueriedItems = individualPatient.vitals.filter((data) => {
+                if (Statuses === '') {
+                    return data
+                } else {
+                    if (data.status === Statuses) {
+                        return data
+                    }
+                }
+            })
+        } else {
+            let sortItems = individualPatient.vitals.filter((data) => {
+                if (Statuses === '') {
+                    return data
+                } else {
+                    if (data.status === Statuses) {
+                        return data
+                    }
+                }
+            })
+
+            if (sortBy === 'Health-A') {
+                allQueriedItems = sortItems.sort((a, b) => {
+                    if (a.healthType < b.healthType) {
+                        return -1
+                    }
+                })
+            }
+
+            if (sortBy === 'Health-D') {
+                allQueriedItems = sortItems.sort((a, b) => {
+                    if (a.healthType > b.healthType) {
+                        return -1
+                    } else {
+                        return 0
+                    }
+                })
+            }
+
+            if (sortBy === 'Status') {
+                allQueriedItems = sortItems.sort((a, b) => {
+                    if (a.status.toLowerCase() < b.status.toLowerCase()) {
+                        return -1
+                    }
+                })
+            }
+        }
 
         const allItemsCollected = allQueriedItems
 
@@ -119,7 +206,7 @@ const ViewPatientVitals = () => {
             totalPages: pageLength,
         })
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [individualPatient.vitals])
+    }, [individualPatient.vitals, sortBy, Statuses])
 
     const handlePrev = () => {
         if (allDisplayData.currentPage - 1 >= 1) {
@@ -246,26 +333,53 @@ const ViewPatientVitals = () => {
                                 direction='row'
                                 alignItems='center'
                                 spacing='15px'>
-                                <SelectorDropDown
-                                    direction='row'
-                                    className='month'>
-                                    <Box w='70%' className='selector_text'>
-                                        <Text>Monthly</Text>
-                                    </Box>
+                                <Menu>
+                                    <MenuButton>
+                                        <SelectorDropDown
+                                            direction='row'
+                                            className='month'>
+                                            <Box
+                                                w='70%'
+                                                className='selector_text'>
+                                                <Text>
+                                                    {vDateType === 'Monthly'
+                                                        ? 'Monthly'
+                                                        : vDateType}
+                                                </Text>
+                                            </Box>
 
-                                    <Box w='30%' className='selector_icon'>
-                                        <Box>
-                                            <Icon
-                                                icon='material-symbols:arrow-back-ios-new'
-                                                color='#616569'
-                                                rotate={1}
-                                                hFlip={true}
-                                                vFlip={true}
-                                                width={'12'}
-                                            />
-                                        </Box>
-                                    </Box>
-                                </SelectorDropDown>
+                                            <Box
+                                                w='30%'
+                                                className='selector_icon'>
+                                                <Box>
+                                                    <Icon
+                                                        icon='material-symbols:arrow-back-ios-new'
+                                                        color='#616569'
+                                                        rotate={1}
+                                                        hFlip={true}
+                                                        vFlip={true}
+                                                        width={'12'}
+                                                    />
+                                                </Box>
+                                            </Box>
+                                        </SelectorDropDown>
+                                    </MenuButton>
+
+                                    <MenuList>
+                                        <MenuItem
+                                            onClick={() =>
+                                                setVDateType(() => 'Monthly')
+                                            }>
+                                            Monthly
+                                        </MenuItem>
+                                        <MenuItem
+                                            onClick={() =>
+                                                setVDateType(() => 'Weekly')
+                                            }>
+                                            Weekly
+                                        </MenuItem>
+                                    </MenuList>
+                                </Menu>
                             </Stack>
                         </TableHeadWrapper>
 
@@ -368,66 +482,144 @@ const ViewPatientVitals = () => {
                                 direction='row'
                                 alignItems='center'
                                 spacing='15px'>
-                                <SelectorDropDown
-                                    direction='row'
-                                    className='month'>
-                                    <Box w='70%' className='selector_text'>
-                                        <Text>All Status</Text>
-                                    </Box>
+                                <Menu>
+                                    <MenuButton>
+                                        {' '}
+                                        <SelectorDropDown
+                                            direction='row'
+                                            className='month'>
+                                            <Box
+                                                w='70%'
+                                                className='selector_text'>
+                                                <Text>
+                                                    {Statuses !== ''
+                                                        ? Statuses
+                                                        : 'All Status'}
+                                                </Text>
+                                            </Box>
 
-                                    <Box w='30%' className='selector_icon'>
-                                        <Box>
-                                            <Icon
-                                                icon='material-symbols:arrow-back-ios-new'
-                                                color='#616569'
-                                                rotate={1}
-                                                hFlip={true}
-                                                vFlip={true}
-                                                width={'12'}
-                                            />
-                                        </Box>
-                                    </Box>
-                                </SelectorDropDown>
-                                <SelectorDropDown
-                                    direction='row'
-                                    className='month'>
-                                    <Box w='70%' className='selector_text'>
-                                        <Text>Health Type</Text>
-                                    </Box>
+                                            <Box
+                                                w='30%'
+                                                className='selector_icon'>
+                                                <Box>
+                                                    <Icon
+                                                        icon='material-symbols:arrow-back-ios-new'
+                                                        color='#616569'
+                                                        rotate={1}
+                                                        hFlip={true}
+                                                        vFlip={true}
+                                                        width={'12'}
+                                                    />
+                                                </Box>
+                                            </Box>
+                                        </SelectorDropDown>
+                                    </MenuButton>
 
-                                    <Box w='30%' className='selector_icon'>
-                                        <Box>
-                                            <Icon
-                                                icon='material-symbols:arrow-back-ios-new'
-                                                color='#616569'
-                                                rotate={1}
-                                                hFlip={true}
-                                                vFlip={true}
-                                                width={'12'}
-                                            />
-                                        </Box>
-                                    </Box>
-                                </SelectorDropDown>
-                                <SelectorDropDown
-                                    direction='row'
-                                    className='month'>
-                                    <Box w='70%' className='selector_text'>
-                                        <Text>Sort By</Text>
-                                    </Box>
+                                    <MenuList>
+                                        <MenuItem
+                                            onClick={() =>
+                                                setStatuses(() => '')
+                                            }>
+                                            All Status
+                                        </MenuItem>
+                                        <MenuItem
+                                            onClick={() =>
+                                                setStatuses(() => 'normal')
+                                            }>
+                                            Normal
+                                        </MenuItem>
+                                        <MenuItem
+                                            onClick={() =>
+                                                setStatuses(() => 'low')
+                                            }>
+                                            Low
+                                        </MenuItem>
+                                        <MenuItem
+                                            onClick={() =>
+                                                setStatuses(() => 'high')
+                                            }>
+                                            High
+                                        </MenuItem>
+                                        <MenuItem
+                                            onClick={() =>
+                                                setStatuses(
+                                                    () => 'critical low'
+                                                )
+                                            }>
+                                            Critical Low
+                                        </MenuItem>
+                                        <MenuItem
+                                            onClick={() =>
+                                                setStatuses(
+                                                    () => 'critical high'
+                                                )
+                                            }>
+                                            Critical High
+                                        </MenuItem>
+                                        <MenuItem
+                                            onClick={() =>
+                                                setStatuses(() => 'concern')
+                                            }>
+                                            Concern
+                                        </MenuItem>
+                                    </MenuList>
+                                </Menu>
 
-                                    <Box w='30%' className='selector_icon'>
-                                        <Box>
-                                            <Icon
-                                                icon='material-symbols:arrow-back-ios-new'
-                                                color='#616569'
-                                                rotate={1}
-                                                hFlip={true}
-                                                vFlip={true}
-                                                width={'12'}
-                                            />
-                                        </Box>
-                                    </Box>
-                                </SelectorDropDown>
+                                <Menu>
+                                    <MenuButton>
+                                        {' '}
+                                        <SelectorDropDown
+                                            direction='row'
+                                            className='month'>
+                                            <Box
+                                                w='70%'
+                                                className='selector_text'>
+                                                <Text>
+                                                    {sortBy !== ''
+                                                        ? sortBy
+                                                        : 'Sort By'}
+                                                </Text>
+                                            </Box>
+
+                                            <Box
+                                                w='30%'
+                                                className='selector_icon'>
+                                                <Box>
+                                                    <Icon
+                                                        icon='material-symbols:arrow-back-ios-new'
+                                                        color='#616569'
+                                                        rotate={1}
+                                                        hFlip={true}
+                                                        vFlip={true}
+                                                        width={'12'}
+                                                    />
+                                                </Box>
+                                            </Box>
+                                        </SelectorDropDown>
+                                    </MenuButton>
+
+                                    <MenuList>
+                                        <MenuItem onClick={() => setSortBy('')}>
+                                            Sort By
+                                        </MenuItem>
+                                        <MenuItem
+                                            onClick={() =>
+                                                setSortBy('Health-A')
+                                            }>
+                                            HealthType-Ascending
+                                        </MenuItem>
+                                        <MenuItem
+                                            onClick={() =>
+                                                setSortBy('Health-D')
+                                            }>
+                                            HealthType-Descending
+                                        </MenuItem>
+                                        <MenuItem
+                                            onClick={() => setSortBy('Status')}>
+                                            Status
+                                        </MenuItem>
+                                    </MenuList>
+                                </Menu>
                             </Stack>
                         </TableHeadWrapper>
 
@@ -547,7 +739,7 @@ const ViewPatientVitals = () => {
                                                                                     : ''
                                                                             } ${
                                                                                 data.status ===
-                                                                                    'critical low' ||
+                                                                                    'low' ||
                                                                                 data.status ===
                                                                                     'critical low' ||
                                                                                 data.status ===
@@ -770,7 +962,7 @@ const TableContainer = styled(Box)`
     }
 
     .status {
-        width: 100px;
+        min-width: 100px;
         background: #f2f2f2;
 
         border-radius: 24px;

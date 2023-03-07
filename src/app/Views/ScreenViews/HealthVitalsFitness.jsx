@@ -1,3 +1,4 @@
+/* eslint-disable array-callback-return */
 import React from 'react'
 import {
     Box,
@@ -13,6 +14,10 @@ import {
     Td,
     Tbody,
     useToast,
+    Menu,
+    MenuButton,
+    MenuList,
+    MenuItem,
 } from '@chakra-ui/react'
 import styled from 'styled-components'
 import TopBar from '../../../components/common/Navigation/TopBar'
@@ -48,6 +53,8 @@ const TableHeadNewData2 = [
     },
 ]
 
+let io = initSocketConnection()
+
 const HealthVitalsFitness = () => {
     let dispatch = useDispatch()
     let toast = useToast()
@@ -74,21 +81,27 @@ const HealthVitalsFitness = () => {
         totalAllItems: 0,
         totalPages: 0,
     })
-
+    const [sortBy, setSortBy] = React.useState('')
     const { isError, isSuccess, message, faItems } = useSelector(
         (state) => state.patient
     )
 
     React.useEffect(() => {
-        dispatch(GetAllFAVitals())
-
-        const io = initSocketConnection()
-
         io.on('update-dash-vitals', (data) => {
             if (data.actions === 'request-vitals-fa') {
                 dispatch(GetAllFAVitals())
             }
         })
+
+        return () => {
+            io.off('update-dash-vitals')
+            io.removeAllListeners('update-dash-vitals')
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [io])
+
+    React.useEffect(() => {
+        dispatch(GetAllFAVitals())
     }, [dispatch])
 
     React.useEffect(() => {
@@ -108,9 +121,40 @@ const HealthVitalsFitness = () => {
 
     //paginate the all items
     React.useEffect(() => {
-        let allQueriedItems = faItems.items.filter((data) => {
-            return data
-        })
+        let allQueriedItems = []
+        if (sortBy === '') {
+            allQueriedItems = faItems.items.filter((data) => {
+                return data
+            })
+        } else {
+            let sortItems = faItems.items.filter((data) => {
+                return data
+            })
+
+            if (sortBy === 'Name-A') {
+                allQueriedItems = sortItems.sort((a, b) => {
+                    if (
+                        a.patientUniqueId.patientName >
+                        b.patientUniqueId.patientName
+                    ) {
+                        return -1
+                    }
+                })
+            }
+
+            if (sortBy === 'Name-D') {
+                allQueriedItems = sortItems.sort((a, b) => {
+                    if (
+                        a.patientUniqueId.patientName <
+                        b.patientUniqueId.patientName
+                    ) {
+                        return -1
+                    } else {
+                        return 0
+                    }
+                })
+            }
+        }
 
         const allItemsCollected = allQueriedItems
 
@@ -138,24 +182,73 @@ const HealthVitalsFitness = () => {
             totalPages: pageLength,
         })
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [faItems])
+    }, [faItems, sortBy])
 
     /** paginate search */
     React.useEffect(() => {
-        // eslint-disable-next-line array-callback-return
-        const searchResults = allDisplayData.allItems.filter((data) => {
-            let serachedValue = searchValue
-                ? searchValue.toLowerCase()
-                : searchValue
-            let name = data.patientName.toLowerCase()
-            let patientId = data.patientId.toLowerCase()
-            if (name.includes(serachedValue)) {
-                return data
-            } else if (patientId.includes(serachedValue)) {
-                return data
-            } else {
+        let searchResults = []
+        if (sortBy === '') {
+            // eslint-disable-next-line array-callback-return
+            searchResults = faItems.items.filter((data) => {
+                let serachedValue = searchValue
+                    ? searchValue.toLowerCase()
+                    : searchValue
+                let name = data.patientUniqueId.patientName
+                    ? data.patientUniqueId.patientName.toLowerCase()
+                    : ''
+                let patientId = data.patientUniqueId.patientId
+                    ? data.patientUniqueId.patientId.toLowerCase()
+                    : ''
+                if (name.includes(serachedValue)) {
+                    return data
+                } else if (patientId.includes(serachedValue)) {
+                    return data
+                } else {
+                }
+            })
+        } else {
+            let sortItems = faItems.items.filter((data) => {
+                let serachedValue = searchValue
+                    ? searchValue.toLowerCase()
+                    : searchValue
+                let name = data.patientUniqueId.patientName
+                    ? data.patientUniqueId.patientName.toLowerCase()
+                    : ''
+                let patientId = data.patientUniqueId.patientId
+                    ? data.patientUniqueId.patientId.toLowerCase()
+                    : ''
+                if (name.includes(serachedValue)) {
+                    return data
+                } else if (patientId.includes(serachedValue)) {
+                    return data
+                } else {
+                }
+            })
+
+            if (sortBy === 'Name-A') {
+                searchResults = sortItems.sort((a, b) => {
+                    if (
+                        a.patientUniqueId.patientName >
+                        b.patientUniqueId.patientName
+                    ) {
+                        return -1
+                    }
+                })
             }
-        })
+
+            if (sortBy === 'Name-D') {
+                searchResults = sortItems.sort((a, b) => {
+                    if (
+                        a.patientUniqueId.patientName <
+                        b.patientUniqueId.patientName
+                    ) {
+                        return -1
+                    } else {
+                        return 0
+                    }
+                })
+            }
+        }
 
         const allItemsCollected = searchResults
 
@@ -185,7 +278,7 @@ const HealthVitalsFitness = () => {
             totalPages: pageLength,
         })
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [searchValue])
+    }, [searchValue, sortBy, faItems, allDisplayData])
 
     //handle previous button
     const handlePrev = () => {
@@ -371,47 +464,52 @@ const HealthVitalsFitness = () => {
                                 direction='row'
                                 alignItems='center'
                                 spacing='15px'>
-                                <SelectorDropDown
-                                    direction='row'
-                                    className='month'>
-                                    <Box w='70%' className='selector_text'>
-                                        <Text>All Status</Text>
-                                    </Box>
+                                <Menu>
+                                    <MenuButton>
+                                        <SelectorDropDown
+                                            direction='row'
+                                            className='month'>
+                                            <Box
+                                                w='70%'
+                                                className='selector_text'>
+                                                <Text>
+                                                    {sortBy !== ''
+                                                        ? sortBy
+                                                        : 'Sort By'}
+                                                </Text>
+                                            </Box>
 
-                                    <Box w='30%' className='selector_icon'>
-                                        <Box>
-                                            <Icon
-                                                icon='material-symbols:arrow-back-ios-new'
-                                                color='#616569'
-                                                rotate={1}
-                                                hFlip={true}
-                                                vFlip={true}
-                                                width={'12'}
-                                            />
-                                        </Box>
-                                    </Box>
-                                </SelectorDropDown>
+                                            <Box
+                                                w='30%'
+                                                className='selector_icon'>
+                                                <Box>
+                                                    <Icon
+                                                        icon='material-symbols:arrow-back-ios-new'
+                                                        color='#616569'
+                                                        rotate={1}
+                                                        hFlip={true}
+                                                        vFlip={true}
+                                                        width={'12'}
+                                                    />
+                                                </Box>
+                                            </Box>
+                                        </SelectorDropDown>
+                                    </MenuButton>
 
-                                <SelectorDropDown
-                                    direction='row'
-                                    className='month'>
-                                    <Box w='70%' className='selector_text'>
-                                        <Text>Sort By</Text>
-                                    </Box>
-
-                                    <Box w='30%' className='selector_icon'>
-                                        <Box>
-                                            <Icon
-                                                icon='material-symbols:arrow-back-ios-new'
-                                                color='#616569'
-                                                rotate={1}
-                                                hFlip={true}
-                                                vFlip={true}
-                                                width={'12'}
-                                            />
-                                        </Box>
-                                    </Box>
-                                </SelectorDropDown>
+                                    <MenuList>
+                                        <MenuItem onClick={() => setSortBy('')}>
+                                            Sort By
+                                        </MenuItem>
+                                        <MenuItem
+                                            onClick={() => setSortBy('Name-A')}>
+                                            Name-Ascending
+                                        </MenuItem>
+                                        <MenuItem
+                                            onClick={() => setSortBy('Name-D')}>
+                                            Name-Descending
+                                        </MenuItem>
+                                    </MenuList>
+                                </Menu>
                             </Stack>
                         </TableHeadWrapper>
 

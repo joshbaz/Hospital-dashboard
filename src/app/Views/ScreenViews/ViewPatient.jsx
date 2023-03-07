@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React from 'react'
 import {
     Box,
@@ -11,6 +12,10 @@ import {
     Td,
     Tbody,
     useToast,
+    Menu,
+    MenuButton,
+    MenuList,
+    MenuItem,
 } from '@chakra-ui/react'
 import styled from 'styled-components'
 import TopBar from '../../../components/common/Navigation/TopBar'
@@ -27,6 +32,14 @@ import {
 } from '../../store/features/patients/patientSlice'
 import { useDispatch, useSelector } from 'react-redux'
 import moment from 'moment-timezone'
+import Cookies from 'js-cookie'
+import { io } from 'socket.io-client'
+import { BASE_API_ } from '../../../middleware/base_url.config'
+let socket = io(BASE_API_, {
+    transports: ['websocket'],
+    upgrade: false,
+    //reconnection: false,
+})
 
 const TableHeadNewData = [
     {
@@ -57,6 +70,9 @@ const TableHeadNewData2 = [
         title: 'Class',
     },
     {
+        title: 'Prescribed',
+    },
+    {
         title: 'Last Prescribed',
     },
     {
@@ -73,10 +89,53 @@ const ViewPatient = () => {
     let toast = useToast()
     let dispatch = useDispatch()
 
+    const [allDisplayData, setAllDisplayData] = React.useState({
+        items: [],
+    })
+    const [allPrescribedData, setAllPrescribedData] = React.useState({
+        items: [],
+    })
+    const [vDateType, setVDateType] = React.useState('Monthly')
+
+    React.useEffect(() => {
+        Cookies.set('vDatetype', vDateType)
+    }, [vDateType])
+
+    React.useEffect(() => {
+        socket.on('update-dash-patient', (data) => {
+            if (
+                data.actions === 'request-vital-pull' &&
+                data.data === params.id
+            ) {
+                dispatch(GetIndividualVitalSummary(params))
+                dispatch(GetIndividualPatient(params))
+            }
+        })
+
+        socket.on('update-prescription', (data) => {
+            if (
+                data.actions === 'request-prescription-pull' &&
+                data.data === params.id
+            ) {
+                dispatch(GetIndividualVitalSummary(params))
+                dispatch(GetIndividualPatient(params))
+            }
+        })
+
+        return () => {
+            socket.off('update-dash-patient')
+            socket.off('update-prescription')
+            socket.disconnect()
+            //LocalSockets.removeAllListeners('update-dash-vitals')
+
+            // io.disconnect()
+        }
+    }, [dispatch])
+
     React.useEffect(() => {
         dispatch(GetIndividualVitalSummary(params))
         dispatch(GetIndividualPatient(params))
-    }, [params, dispatch])
+    }, [params, dispatch, vDateType])
     const {
         isError,
         isSuccess,
@@ -99,6 +158,34 @@ const ViewPatient = () => {
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isError, isSuccess, message, dispatch])
+
+    React.useEffect(() => {
+        let allQueriedItems = []
+        // eslint-disable-next-line array-callback-return
+        allQueriedItems = individualPatient.vitals.filter((data) => {
+            return data
+        })
+
+        allQueriedItems.splice(8)
+
+        setAllDisplayData({
+            items: allQueriedItems,
+        })
+    }, [individualPatient.vitals])
+
+    React.useEffect(() => {
+        let allQueriedItems = []
+        // eslint-disable-next-line array-callback-return
+        allQueriedItems = individualPatient.prescription.filter((data) => {
+            return data
+        })
+
+        allQueriedItems.splice(8)
+
+        setAllPrescribedData({
+            items: allQueriedItems,
+        })
+    }, [individualPatient.prescription])
 
     return (
         <Container direction='row' w='100vw' spacing={'0px'}>
@@ -282,26 +369,54 @@ const ViewPatient = () => {
                                 direction='row'
                                 alignItems='center'
                                 spacing='15px'>
-                                <SelectorDropDown
-                                    direction='row'
-                                    className='month'>
-                                    <Box w='70%' className='selector_text'>
-                                        <Text>Monthly</Text>
-                                    </Box>
+                                <Menu>
+                                    <MenuButton>
+                                        <SelectorDropDown
+                                            direction='row'
+                                            className='month'>
+                                            <Box
+                                                w='70%'
+                                                className='selector_text'>
+                                                <Text>
+                                                    {' '}
+                                                    {vDateType === 'Monthly'
+                                                        ? 'Monthly'
+                                                        : vDateType}
+                                                </Text>
+                                            </Box>
 
-                                    <Box w='30%' className='selector_icon'>
-                                        <Box>
-                                            <Icon
-                                                icon='material-symbols:arrow-back-ios-new'
-                                                color='#616569'
-                                                rotate={1}
-                                                hFlip={true}
-                                                vFlip={true}
-                                                width={'12'}
-                                            />
-                                        </Box>
-                                    </Box>
-                                </SelectorDropDown>
+                                            <Box
+                                                w='30%'
+                                                className='selector_icon'>
+                                                <Box>
+                                                    <Icon
+                                                        icon='material-symbols:arrow-back-ios-new'
+                                                        color='#616569'
+                                                        rotate={1}
+                                                        hFlip={true}
+                                                        vFlip={true}
+                                                        width={'12'}
+                                                    />
+                                                </Box>
+                                            </Box>
+                                        </SelectorDropDown>
+                                    </MenuButton>
+
+                                    <MenuList>
+                                        <MenuItem
+                                            onClick={() =>
+                                                setVDateType(() => 'Monthly')
+                                            }>
+                                            Monthly
+                                        </MenuItem>
+                                        <MenuItem
+                                            onClick={() =>
+                                                setVDateType(() => 'Weekly')
+                                            }>
+                                            Weekly
+                                        </MenuItem>
+                                    </MenuList>
+                                </Menu>
                             </Stack>
                         </TableHeadWrapper>
 
@@ -431,22 +546,22 @@ const ViewPatient = () => {
                                     </Thead>
 
                                     <Tbody>
-                                        {individualPatient.vitals.length > 0 ? (
+                                        {allDisplayData.items.length > 0 ? (
                                             <>
-                                                {individualPatient.vitals.map(
+                                                {allDisplayData.items.map(
                                                     (data, index) => {
-                                                         let createdDate =
-                                                             moment(
-                                                                 new Date(
-                                                                     data.createdDate
-                                                                 )
-                                                             )
-                                                                 .tz(
-                                                                     'Africa/Nairobi'
-                                                                 )
-                                                                 .format(
-                                                                     'DD MMM YYYY h:mm a'
-                                                                 )
+                                                        let createdDate =
+                                                            moment(
+                                                                new Date(
+                                                                    data.createdDate
+                                                                )
+                                                            )
+                                                                .tz(
+                                                                    'Africa/Nairobi'
+                                                                )
+                                                                .format(
+                                                                    'DD MMM YYYY h:mm a'
+                                                                )
                                                         return (
                                                             <Tr
                                                                 className={`table_row `}
@@ -630,11 +745,22 @@ const ViewPatient = () => {
                                     </Thead>
 
                                     <Tbody>
-                                        {individualPatient.prescription.length >
-                                        0 ? (
+                                        {allPrescribedData.items.length > 0 ? (
                                             <>
-                                                {individualPatient.prescription.map(
+                                                {allPrescribedData.items.map(
                                                     (data) => {
+                                                        let createdDate =
+                                                            moment(
+                                                                new Date(
+                                                                    data.lastPrescribed
+                                                                )
+                                                            )
+                                                                .tz(
+                                                                    'Africa/Nairobi'
+                                                                )
+                                                                .format(
+                                                                    'DD MMM YYYY h:mm a'
+                                                                )
                                                         return (
                                                             <Tr
                                                                 className={`table_row `}
@@ -691,7 +817,7 @@ const ViewPatient = () => {
                                                                         color: '#15151D',
                                                                     }}>
                                                                     {
-                                                                        data.lastPrescribed
+                                                                        data.prescribed
                                                                     }
                                                                 </Td>
                                                                 <Td
@@ -700,10 +826,19 @@ const ViewPatient = () => {
                                                                         fontWeight: 500,
                                                                         color: '#15151D',
                                                                     }}>
-                                                                    {data.status ===
-                                                                    'false'
-                                                                        ? 'Inactive'
-                                                                        : 'active'}
+                                                                    {
+                                                                        createdDate
+                                                                    }
+                                                                </Td>
+                                                                <Td
+                                                                    maxW='250px'
+                                                                    style={{
+                                                                        fontWeight: 500,
+                                                                        color: '#15151D',
+                                                                    }}>
+                                                                    {
+                                                                        data.status
+                                                                    }
                                                                 </Td>
                                                                 <Td
                                                                     maxW='250px'
@@ -880,7 +1015,7 @@ const TableContainer = styled(Box)`
     }
 
     .status {
-        width: 100px;
+        min-width: 100px;
         background: #f2f2f2;
 
         border-radius: 24px;

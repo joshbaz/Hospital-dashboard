@@ -137,6 +137,28 @@ export const EditPrescription = createAsyncThunk(
     }
 )
 
+// create Refill
+export const CreateRefill = createAsyncThunk(
+    'patient/prescription/refills/creates/',
+    async (details, thunkAPI) => {
+        const creationAttempt = await patientService.createRefill(details)
+
+        if (creationAttempt.type === 'success') {
+            return creationAttempt
+        } else {
+            if (
+                creationAttempt.message === 'jwt expired' ||
+                creationAttempt.message === 'Not authenticated'
+            ) {
+                authService.logout()
+                return thunkAPI.rejectWithValue(creationAttempt.message)
+            } else {
+                return thunkAPI.rejectWithValue(creationAttempt.message)
+            }
+        }
+    }
+)
+
 export const GetAllPatients = createAsyncThunk(
     '/patient/getall',
     async (details, thunkAPI) => {
@@ -362,7 +384,9 @@ export const GetMainSummaryVitals = createAsyncThunk(
 export const GetMainMonthlySummaryVitals = createAsyncThunk(
     'patients/main/monthly/summary/vitals',
     async (details, thunkAPI) => {
-        const getAttempt = await patientService.getMainMonthlySummaryVitals()
+        const getAttempt = await patientService.getMainMonthlySummaryVitals(
+            details
+        )
 
         if (getAttempt.type === 'success') {
             return getAttempt
@@ -407,7 +431,9 @@ export const GetdashboardReports = createAsyncThunk(
 export const GetdashboardPieGraph = createAsyncThunk(
     'patients/dashboard/graph/pie',
     async (details, thunkAPI) => {
-        const getAttempt = await patientService.getMaindashboardPieGraph()
+        const getAttempt = await patientService.getMaindashboardPieGraph(
+            details
+        )
 
         if (getAttempt.type === 'success') {
             return getAttempt
@@ -429,7 +455,9 @@ export const GetdashboardPieGraph = createAsyncThunk(
 export const GetdashboardBarGraph = createAsyncThunk(
     'patients/dashboard/graph/bars',
     async (details, thunkAPI) => {
-        const getAttempt = await patientService.getMaindashboardBarGraph()
+        const getAttempt = await patientService.getMaindashboardBarGraph(
+            details
+        )
 
         if (getAttempt.type === 'success') {
             return getAttempt
@@ -502,6 +530,22 @@ export const patientSlice = createSlice({
                 state.message = action.payload
             })
             .addCase(EditPrescription.rejected, (state, action) => {
+                state.isLoading = false
+                state.isError = true
+                state.message = action.payload
+            })
+
+            /** create refill */
+            .addCase(CreateRefill.pending, (state) => {
+                state.isLoading = true
+                state.message = ''
+            })
+            .addCase(CreateRefill.fulfilled, (state, action) => {
+                state.isLoading = false
+                state.isSuccess = true
+                state.message = action.payload
+            })
+            .addCase(CreateRefill.rejected, (state, action) => {
                 state.isLoading = false
                 state.isError = true
                 state.message = action.payload
