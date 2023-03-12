@@ -229,8 +229,8 @@ const ViewPatientPrescription = () => {
                 helperFunctions.setSubmitting(false)
                 setHelperFunctions(() => null)
                 setIsSubmittingp(() => false)
-                 setIsSubmittingp1(() => false)
-                  setIsSubmittingp2(() => false)
+                setIsSubmittingp1(() => false)
+                setIsSubmittingp2(() => false)
                 setRefillModal(() => false)
                 setRefillModal(() => false)
                 setEditDetails(() => false)
@@ -242,9 +242,6 @@ const ViewPatientPrescription = () => {
             dispatch(reset())
         }
 
-       
-
-       
         dispatch(reset())
         //setIsSubmittingp2(() => false)
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -357,7 +354,7 @@ const ViewPatientPrescription = () => {
                 spacing='20px'
                 bg='#f9fafa'
                 className='data-container'>
-                <Box w='100%' h='65px' className='stick'>
+                <Box w='100%' h='65px' className='stick' zIndex={'20'}>
                     <TopBar topbarData={{ title: '', count: null }} />
                 </Box>
 

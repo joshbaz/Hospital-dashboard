@@ -1,3 +1,4 @@
+/* eslint-disable array-callback-return */
 /* eslint-disable react-hooks/exhaustive-deps */
 import React from 'react'
 import {
@@ -16,6 +17,14 @@ import {
     MenuButton,
     MenuList,
     MenuItem,
+    Modal,
+    ModalOverlay,
+    ModalContent,
+    ModalBody,
+    Checkbox,
+    Button,
+    Radio,
+    RadioGroup,
 } from '@chakra-ui/react'
 import styled from 'styled-components'
 import TopBar from '../../../components/common/Navigation/TopBar'
@@ -54,6 +63,9 @@ const TableHeadNewData = [
     {
         title: 'Status',
     },
+    {
+        title: '',
+    },
 ]
 
 const TableHeadNewData2 = [
@@ -83,6 +95,48 @@ const TableHeadNewData2 = [
     },
 ]
 
+const CheckboxList = [
+    {
+        title: 'Any Bleeding?',
+    },
+    {
+        title: 'Chills?',
+    },
+    {
+        title: 'Chest pain with exertion?',
+    },
+    {
+        title: 'Shortness of breath?',
+    },
+    {
+        title: 'Cough?',
+    },
+    {
+        title: 'Palpitations?',
+    },
+    {
+        title: 'Fever?',
+    },
+    {
+        title: 'Legs swelling?',
+    },
+    {
+        title: 'Headache?',
+    },
+]
+
+const feelingList = [
+    {
+        title: 'OK',
+    },
+    {
+        title: 'Bad',
+    },
+    {
+        title: 'Sick',
+    },
+]
+
 const ViewPatient = () => {
     let routeNavigate = useNavigate()
     let params = useParams()
@@ -96,6 +150,19 @@ const ViewPatient = () => {
         items: [],
     })
     const [vDateType, setVDateType] = React.useState('Monthly')
+
+    const [viewDetailsModal, setViewDetailsModal] = React.useState(false)
+    const [symptomDetails, setSymptomDetails] = React.useState(null)
+
+    const handleSymptomView = (data) => {
+        setSymptomDetails(() => data)
+        setViewDetailsModal(() => true)
+    }
+
+    const handleSymptomCancel = () => {
+        setSymptomDetails(() => null)
+        setViewDetailsModal(() => false)
+    }
 
     React.useEffect(() => {
         Cookies.set('vDatetype', vDateType)
@@ -202,7 +269,7 @@ const ViewPatient = () => {
                 spacing='20px'
                 bg='#f9fafa'
                 className='data-container'>
-                <Box w='100%' h='65px' className='stick'>
+                <Box w='100%' h='65px' className='stick' zIndex={'20'}>
                     <TopBar topbarData={{ title: '', count: null }} />
                 </Box>
 
@@ -644,6 +711,25 @@ const ViewPatient = () => {
                                                                         </Box>
                                                                     </Stack>
                                                                 </Td>
+
+                                                                <Td>
+                                                                    <ViewButton2
+                                                                        direction='row'
+                                                                        onClick={() =>
+                                                                            handleSymptomView(
+                                                                                data
+                                                                            )
+                                                                        }>
+                                                                        <Box
+                                                                            w='70%'
+                                                                            className='viewbutton_text2'>
+                                                                            <Text>
+                                                                                View
+                                                                                Details
+                                                                            </Text>
+                                                                        </Box>
+                                                                    </ViewButton2>
+                                                                </Td>
                                                             </Tr>
                                                         )
                                                     }
@@ -907,6 +993,282 @@ const ViewPatient = () => {
                     </Stack>
                 </Stack>
             </Stack>
+
+            {/** modal for viewing symptoms */}
+            <Modal
+                size=''
+                isOpen={viewDetailsModal}
+                p='0'
+                w=''
+                onClose={() => handleSymptomCancel()}>
+                <ModalOverlay w='100vw' overflowY={'visible'} p='0' />
+                <ModalContent p='0' w='50%'>
+                    <ModalBody p='0'>
+                        <PopupContent
+                            p='0px'
+                            direction='column'
+                            spacing='0'
+                            justifyContent='space-between'>
+                            <Stack
+                                pb='50px'
+                                direction='column'
+                                spacing={'10px'}
+                                h='100%'>
+                                <Stack
+                                    className='pop_title'
+                                    direction='row'
+                                    w=''
+                                    alignItems='center'
+                                    justifyContent='space-between'>
+                                    <Box>
+                                        <h1>Vitals</h1>
+                                    </Box>
+                                </Stack>
+
+                                {/** vitals */}
+                                <Stack p='10px 20px 10px 20px' spacing='20px'>
+                                    <Text className='form_head'>
+                                        vital details
+                                    </Text>
+
+                                    <Stack
+                                        className='content'
+                                        direction='column'
+                                        w='100%'>
+                                        {/** date */}
+                                        <Stack
+                                            direction='column'
+                                            spacing='11px'>
+                                            <Box
+                                                className='form_input'
+                                                w='100%'
+                                                minW='200px'>
+                                                <Input
+                                                    bg='#ffffff'
+                                                    placeholder='Insert drug name'
+                                                    size='md'
+                                                    type='text'
+                                                    name='drugName'
+                                                    value={
+                                                        symptomDetails !==
+                                                            null &&
+                                                        symptomDetails.createdDate
+                                                            ? moment(
+                                                                  new Date(
+                                                                      symptomDetails.createdDate
+                                                                  )
+                                                              )
+                                                                  .tz(
+                                                                      'Africa/Nairobi'
+                                                                  )
+                                                                  .format(
+                                                                      'DD MMM YYYY h:mm a'
+                                                                  )
+                                                            : ''
+                                                    }
+                                                />
+                                            </Box>
+                                        </Stack>
+
+                                        {/** type */}
+                                        <Stack
+                                            direction='column'
+                                            spacing='11px'>
+                                            <Box className='content_title'>
+                                                Type
+                                            </Box>
+
+                                            <Box
+                                                className='form_input'
+                                                w='100%'
+                                                minW='200px'>
+                                                <Input
+                                                    bg='#ffffff'
+                                                    placeholder='Insert drug name'
+                                                    size='md'
+                                                    type='text'
+                                                    name='drugName'
+                                                    value={
+                                                        symptomDetails !==
+                                                            null &&
+                                                        symptomDetails.healthType
+                                                            ? symptomDetails.healthType
+                                                            : ''
+                                                    }
+                                                />
+                                            </Box>
+                                        </Stack>
+
+                                        {/** health vital */}
+                                        <Stack
+                                            direction='column'
+                                            spacing='11px'>
+                                            <Box className='content_title'>
+                                                Health Vital (Value)
+                                            </Box>
+
+                                            <Box
+                                                className='form_input'
+                                                w='100%'
+                                                minW='200px'>
+                                                <Input
+                                                    bg='#ffffff'
+                                                    placeholder='Insert drug name'
+                                                    size='md'
+                                                    type='text'
+                                                    name='drugName'
+                                                    value={
+                                                        symptomDetails !==
+                                                            null &&
+                                                        symptomDetails.healthVital
+                                                            ? `${
+                                                                  symptomDetails.healthVital
+                                                              } ${
+                                                                  symptomDetails.healthType ===
+                                                                  'Blood Glucose'
+                                                                      ? 'mg/dl'
+                                                                      : ''
+                                                              }  ${
+                                                                  symptomDetails.healthType ===
+                                                                  'Blood Pressure'
+                                                                      ? 'mm/Hg'
+                                                                      : ''
+                                                              }`
+                                                            : ''
+                                                    }
+                                                />
+                                            </Box>
+                                        </Stack>
+                                    </Stack>
+                                </Stack>
+
+                                {/** other symptoms */}
+                                {symptomDetails !== null &&
+                                symptomDetails.healthType !==
+                                    'Fitness Activities' ? (
+                                    <Stack
+                                        p='10px 20px 10px 20px'
+                                        spacing='20px'>
+                                        <Text className='form_head'>
+                                            other symptoms
+                                        </Text>
+
+                                        <Stack
+                                            className='content'
+                                            direction='column'
+                                            w='100%'>
+                                            {/** client is feeling */}
+                                            <Stack
+                                                direction='column'
+                                                spacing='11px'>
+                                                <Box className='content_title'>
+                                                    How client is feeling
+                                                </Box>
+
+                                                <Box
+                                                    className='form_input'
+                                                    w='100%'
+                                                    minW='200px'>
+                                                    <RadioGroup>
+                                                        {feelingList.map(
+                                                            (fdata, index) => {
+                                                                return (
+                                                                    <Radio
+                                                                        isChecked={
+                                                                            symptomDetails !==
+                                                                                null &&
+                                                                            symptomDetails
+                                                                                .otherSymptoms
+                                                                                .feeling ===
+                                                                                fdata.title
+                                                                                ? true
+                                                                                : false
+                                                                        }
+                                                                        key={
+                                                                            index
+                                                                        }>
+                                                                        {
+                                                                            fdata.title
+                                                                        }
+                                                                    </Radio>
+                                                                )
+                                                            }
+                                                        )}
+                                                    </RadioGroup>
+                                                </Box>
+                                            </Stack>
+
+                                            {/** list of symptoms */}
+                                            <Stack
+                                                direction='column'
+                                                spacing='11px'>
+                                                <Box className='content_title'>
+                                                    list of symptoms
+                                                </Box>
+
+                                                <Box
+                                                    className='form_input'
+                                                    w='100%'
+                                                    minW='200px'>
+                                                    {CheckboxList.map(
+                                                        (data, index) => {
+                                                            let checked =
+                                                                symptomDetails !==
+                                                                    null &&
+                                                                symptomDetails
+                                                                    .otherSymptoms
+                                                                    .symptoms
+                                                                    ? symptomDetails.otherSymptoms.symptoms.some(
+                                                                          (
+                                                                              datas
+                                                                          ) => {
+                                                                              if (
+                                                                                  datas.title ===
+                                                                                  data.title
+                                                                              ) {
+                                                                                  return true
+                                                                              }
+                                                                          }
+                                                                      )
+                                                                    : false
+                                                            return (
+                                                                <Checkbox
+                                                                    isChecked={
+                                                                        checked
+                                                                    }
+                                                                    w='300px'
+                                                                    h='30px'
+                                                                    key={index}>
+                                                                    {data.title}{' '}
+                                                                </Checkbox>
+                                                            )
+                                                        }
+                                                    )}
+                                                </Box>
+                                            </Stack>
+                                        </Stack>
+                                    </Stack>
+                                ) : null}
+                            </Stack>
+                            <Stack
+                                p='0px 20px'
+                                h='65px'
+                                bg='#ffffff'
+                                direction='row'
+                                borderTop='1px solid #E9EDF5'
+                                borderRadius='0 0 8px 8px'
+                                justifyContent='flex-end'
+                                alignItems='center'>
+                                <Button
+                                    className='apply_button'
+                                    onClick={handleSymptomCancel}>
+                                    Close
+                                </Button>
+                            </Stack>
+                        </PopupContent>
+                    </ModalBody>
+                </ModalContent>
+            </Modal>
         </Container>
     )
 }
@@ -1184,5 +1546,222 @@ const LinkToolsWrap = styled(Stack)`
     .current {
         color: #1f2225;
         font-weight: 600;
+    }
+`
+
+const ViewButton2 = styled(Stack)`
+    width: 114px;
+    height: 32px;
+    background: #ffffff;
+    cursor: pointer;
+
+    border-radius: 8px;
+    align-items: center;
+    justify-content: center;
+    .viewbutton_text2 {
+        font-family: 'Open Sans', sans-serif;
+
+        color: #3e66fb;
+        font-weight: 600;
+        font-size: 12px;
+        line-height: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+    }
+`
+
+const PopupContent = styled(Stack)`
+    width: 100%;
+    min-height: 182px;
+    height: 100%;
+    background: #fbfbfb;
+    box-shadow: 0px 0px 0px 1px rgba(152, 161, 178, 0.1),
+        0px 30px 70px -10px rgba(17, 24, 38, 0.25),
+        0px 10px 30px rgba(0, 0, 0, 0.2);
+    border-radius: 12px;
+    font-family: 'Inter', sans-serif;
+    span {
+        margin: 0 5px;
+    }
+
+    .pop_title {
+        height: 45px;
+        width: 100%;
+
+        border-bottom: 1px solid #ebeefa;
+        padding: 0 30px;
+        h1 {
+            width: 100%;
+
+            font-style: normal;
+            font-weight: bold;
+            font-size: 17px;
+            line-height: 21px;
+            color: #111827;
+        }
+    }
+
+    .form_head {
+        font-family: 'Open Sans', sans-serif;
+        font-style: normal;
+        font-weight: 700;
+        font-size: 12px;
+        line-height: 150%;
+        text-transform: uppercase;
+        color: #92979d;
+    }
+
+    .content {
+        input {
+            border-radius: 6px;
+            width: 100%;
+            font-style: normal;
+            font-weight: 500;
+
+            line-height: 20px;
+            color: #20202a;
+            font-weight: 500;
+            font-size: 14px;
+            line-height: 20px;
+        }
+
+        radio {
+            color: #20202a;
+            font-weight: 500;
+            font-size: 14px;
+            line-height: 20px;
+        }
+    }
+
+    .content_title {
+        font-weight: 500;
+        font-size: 14px;
+        line-height: 20px;
+        color: #464f60;
+    }
+
+    .form_container {
+        .label {
+            font-family: 'Inter', sans-serif;
+            font-weight: 500;
+            font-size: 14px;
+            line-height: 20px;
+            color: #5e5c60;
+            letter-spacing: 0.02em;
+            border: 1px dashed #fbb649;
+            background: #fef9ef;
+            box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.06);
+            border-radius: 6px;
+            height: 49px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            span {
+                padding-left: 5px;
+                color: #1371ff;
+            }
+        }
+
+        .fileview {
+            background: #ffffff;
+            border: 1px solid #eeeeef;
+
+            box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.06);
+            border-radius: 6px;
+            min-height: 50px;
+        }
+
+        .label2 {
+            border: 1px solid transparent;
+            height: 47px;
+            border-radius: 6px 0 0 6px;
+            background: #eeeeef;
+        }
+    }
+
+    .savelabel {
+        font-style: normal;
+        font-weight: 500;
+        font-size: 14px;
+        line-height: 20px;
+        color: #464f60;
+    }
+
+    .icon_stack {
+        border-radius: 8px;
+        height: 40px;
+        justify-content: center;
+        align-items: center;
+
+        .icon_stack_text {
+            font-style: normal;
+            font-weight: 500;
+            font-size: 12px;
+        }
+
+        .icon_stack_icon {
+            font-size: 14px;
+        }
+    }
+
+    .toggleText {
+        font-family: Roboto, sans-serif;
+        font-weight: 400;
+        font-size: 12px;
+        color: rgba(194, 201, 209, 1);
+    }
+
+    .filestitle {
+        font-style: normal;
+        font-weight: bold;
+        font-size: 14px;
+        line-height: 17px;
+        color: #1a2240;
+    }
+
+    .cancel_button {
+        padding: 6px 12px;
+        height: 32px;
+        color: #3e66fb;
+        font-weight: 500;
+        font-size: 14px;
+        line-height: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+
+        box-shadow: 0px 1px 1px rgba(0, 0, 0, 0.1),
+            0px 0px 0px 1px rgba(70, 79, 96, 0.16);
+        border-radius: 6px;
+        background: #ffffff;
+    }
+    .apply_button {
+        height: 32px;
+        padding: 6px 12px;
+        color: #ffffff;
+        font-weight: 500;
+        font-size: 14px;
+        line-height: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        letter-spacing: 0.02em;
+
+        background: #3e66fb;
+
+        border-radius: 6px;
+
+        &:hover {
+            background: #3e66fb;
+        }
+    }
+
+    .chakra-switch__thumb {
+        margin: 0 !important;
     }
 `

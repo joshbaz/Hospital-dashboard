@@ -4,7 +4,7 @@ import Cookies from 'js-cookie'
 
 let isAuthenticated = !!Cookies.get('_tk')
 const user = isAuthenticated ? JSON.parse(Cookies.get('user')) : null
-console.log('users', user)
+
 const initialState = {
     user: user ? user : null,
     isError: false,
@@ -22,14 +22,13 @@ export const Login = createAsyncThunk(
         if (LoginAttempt.type === 'success') {
             return LoginAttempt
         } else {
-            console.log('error message', LoginAttempt.message)
             return thunkAPI.rejectWithValue(LoginAttempt.message)
         }
     }
 )
 
 export const Logout = createAsyncThunk('auth/logout', async () => {
-    authService.logout()
+    await authService.logout()
 })
 
 export const GetUserDetails = createAsyncThunk(
@@ -40,8 +39,16 @@ export const GetUserDetails = createAsyncThunk(
         if (getAttempt.type === 'success') {
             return getAttempt
         } else {
-            console.log('error message', getAttempt.message)
-            return thunkAPI.rejectWithValue(getAttempt.message)
+            if (
+                getAttempt.message === 'jwt expired' ||
+                getAttempt.message === 'Not authenticated' ||
+                getAttempt.message === 'jwt malformed'
+            ) {
+                authService.logout()
+                return thunkAPI.rejectWithValue(getAttempt.message)
+            } else {
+                return thunkAPI.rejectWithValue(getAttempt.message)
+            }
         }
     }
 )
@@ -55,8 +62,16 @@ export const UpdateDetails = createAsyncThunk(
         if (getAttempt.type === 'success') {
             return getAttempt
         } else {
-            console.log('error message', getAttempt.message)
-            return thunkAPI.rejectWithValue(getAttempt.message)
+            if (
+                getAttempt.message === 'jwt expired' ||
+                getAttempt.message === 'Not authenticated' ||
+                getAttempt.message === 'jwt malformed'
+            ) {
+                authService.logout()
+                return thunkAPI.rejectWithValue(getAttempt.message)
+            } else {
+                return thunkAPI.rejectWithValue(getAttempt.message)
+            }
         }
     }
 )
@@ -70,8 +85,16 @@ export const UpdateSettings = createAsyncThunk(
         if (getAttempt.type === 'success') {
             return getAttempt
         } else {
-            console.log('error message', getAttempt.message)
-            return thunkAPI.rejectWithValue(getAttempt.message)
+            if (
+                getAttempt.message === 'jwt expired' ||
+                getAttempt.message === 'Not authenticated' ||
+                getAttempt.message === 'jwt malformed'
+            ) {
+                authService.logout()
+                return thunkAPI.rejectWithValue(getAttempt.message)
+            } else {
+                return thunkAPI.rejectWithValue(getAttempt.message)
+            }
         }
     }
 )
@@ -85,8 +108,86 @@ export const UpdatePasskey = createAsyncThunk(
         if (getAttempt.type === 'success') {
             return getAttempt
         } else {
-            console.log('error message', getAttempt.message)
-            return thunkAPI.rejectWithValue(getAttempt.message)
+            if (
+                getAttempt.message === 'jwt expired' ||
+                getAttempt.message === 'Not authenticated' ||
+                getAttempt.message === 'jwt malformed'
+            ) {
+                authService.logout()
+                return thunkAPI.rejectWithValue(getAttempt.message)
+            } else {
+                return thunkAPI.rejectWithValue(getAttempt.message)
+            }
+        }
+    }
+)
+
+/** resets passwords */
+//forgot password
+export const ForgotPasskeys = createAsyncThunk(
+    'auth/passwords/forgotpassword',
+    async (userDetails, thunkAPI) => {
+        const getAttempt = await authService.forgotPasskey(userDetails)
+
+        if (getAttempt.type === 'success') {
+            return getAttempt
+        } else {
+            if (
+                getAttempt.message === 'jwt expired' ||
+                getAttempt.message === 'Not authenticated' ||
+                getAttempt.message === 'jwt malformed'
+            ) {
+                authService.logout()
+                return thunkAPI.rejectWithValue(getAttempt.message)
+            } else {
+                return thunkAPI.rejectWithValue(getAttempt.message)
+            }
+        }
+    }
+)
+
+//verify passkey Reset
+export const VerifyPasskeyReset = createAsyncThunk(
+    'auth/passwords/verifyReset',
+    async (userDetails, thunkAPI) => {
+        const getAttempt = await authService.verifyPasskeyReset(userDetails)
+
+        if (getAttempt.type === 'success') {
+            return getAttempt
+        } else {
+            if (
+                getAttempt.message === 'jwt expired' ||
+                getAttempt.message === 'Not authenticated' ||
+                getAttempt.message === 'jwt malformed'
+            ) {
+                authService.logout()
+                return thunkAPI.rejectWithValue(getAttempt.message)
+            } else {
+                return thunkAPI.rejectWithValue(getAttempt.message)
+            }
+        }
+    }
+)
+
+//verify passkey Reset
+export const ResetPassword = createAsyncThunk(
+    'auth/passwords/resetpassword',
+    async (userDetails, thunkAPI) => {
+        const getAttempt = await authService.resetPassword(userDetails)
+
+        if (getAttempt.type === 'success') {
+            return getAttempt
+        } else {
+            if (
+                getAttempt.message === 'jwt expired' ||
+                getAttempt.message === 'Not authenticated' ||
+                getAttempt.message === 'jwt malformed'
+            ) {
+                authService.logout()
+                return thunkAPI.rejectWithValue(getAttempt.message)
+            } else {
+                return thunkAPI.rejectWithValue(getAttempt.message)
+            }
         }
     }
 )
@@ -176,6 +277,52 @@ export const authSlice = createSlice({
                 state.message = action.payload
             })
             .addCase(UpdatePasskey.rejected, (state, action) => {
+                state.isLoading = false
+                state.isError = true
+                state.message = action.payload
+            })
+
+            /** resets passwords */
+            /** forgot password */
+            .addCase(ForgotPasskeys.pending, (state) => {
+                state.isLoading = true
+            })
+            .addCase(ForgotPasskeys.fulfilled, (state, action) => {
+                state.isLoading = false
+                state.isSuccess = true
+                state.message = action.payload
+            })
+            .addCase(ForgotPasskeys.rejected, (state, action) => {
+                state.isLoading = false
+                state.isError = true
+                state.message = action.payload
+            })
+
+            /** verify passkey Reset */
+            .addCase(VerifyPasskeyReset.pending, (state) => {
+                state.isLoading = true
+            })
+            .addCase(VerifyPasskeyReset.fulfilled, (state, action) => {
+                state.isLoading = false
+                state.isSuccess = true
+                state.message = action.payload
+            })
+            .addCase(VerifyPasskeyReset.rejected, (state, action) => {
+                state.isLoading = false
+                state.isError = true
+                state.message = action.payload
+            })
+
+            /** verify passkey Reset */
+            .addCase(ResetPassword.pending, (state) => {
+                state.isLoading = true
+            })
+            .addCase(ResetPassword.fulfilled, (state, action) => {
+                state.isLoading = false
+                state.isSuccess = true
+                state.message = action.payload
+            })
+            .addCase(ResetPassword.rejected, (state, action) => {
                 state.isLoading = false
                 state.isError = true
                 state.message = action.payload

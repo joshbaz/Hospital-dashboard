@@ -1,6 +1,9 @@
 import React from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import ForgotPasskey from '../app/Views/AuthViews/ForgotPasskey'
 import Login from '../app/Views/AuthViews/Login'
+import ResetPasskey from '../app/Views/AuthViews/ResetPasskey'
+import VerifyChange from '../app/Views/AuthViews/VerifyChange'
 import Account from '../app/Views/ScreenViews/Account'
 import EmergencyList from '../app/Views/ScreenViews/EmergencyList'
 import HealthVitalsBPressure from '../app/Views/ScreenViews/HealthVitalsBPressure'
@@ -19,6 +22,23 @@ const AllRoutes = () => {
         <BrowserRouter>
             <Routes>
                 <Route exact path='/auth/login' element={<Login />} />
+                <Route
+                    exact
+                    path='/auth/forgotPasskey'
+                    element={<ForgotPasskey />}
+                />
+
+                <Route
+                    exact
+                    path='/auth/resetToken/:tk'
+                    element={<VerifyChange />}
+                />
+                <Route
+                    exact
+                    path='/auth/ResetPasskey/:tk'
+                    element={<ResetPasskey />}
+                />
+
                 <Route element={<ProtectedRoute />}>
                     <Route exact path='/' element={<Overview />} />
                     <Route

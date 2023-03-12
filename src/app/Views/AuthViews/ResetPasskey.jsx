@@ -1,44 +1,31 @@
 import React from 'react'
-import {
-    Box,
-    Stack,
-    Button,
-    Text,
-    Checkbox,
-    HStack,
-    useToast,
-} from '@chakra-ui/react'
+import { Stack, Button, Text, useToast } from '@chakra-ui/react'
 import styled from 'styled-components'
 import { Formik, Form } from 'formik'
 import * as yup from 'yup'
-import {
-    Login as LoginAction,
-    reset,
-} from '../../store/features/auth/authSlice'
+import { reset, ResetPassword } from '../../store/features/auth/authSlice'
+
 import { useDispatch, useSelector } from 'react-redux'
-import { useNavigate } from 'react-router-dom'
-const Logint = () => {
+import { useNavigate, useParams } from 'react-router-dom'
+
+const ResetPasskey = () => {
     let toast = useToast()
     let routeNavigate = useNavigate()
     let dispatch = useDispatch()
+    let params = useParams()
 
-    //in-house state
-    // eslint-disable-next-line no-unused-vars
-    const [passError, setPassError] = React.useState(false)
-    // eslint-disable-next-line no-unused-vars
-    const [usernameError, setUserNameError] = React.useState(false)
     const [helperFunctions, setHelperFunctions] = React.useState(null)
     const [isSubmittingp, setIsSubmittingp] = React.useState(false)
 
     //validation schema
     const validationSchema = yup.object().shape({
-        email: yup.string().email('Invalid email').required('required'),
         password: yup.string().required('password is required'),
+        passwordConfirmation: yup
+            .string()
+            .oneOf([yup.ref('password'), null], 'Passwords must match'),
     })
 
-    const { user, isError, isSuccess, message } = useSelector(
-        (state) => state.auth
-    )
+    const { isError, isSuccess, message } = useSelector((state) => state.auth)
 
     React.useEffect(() => {
         if (isError) {
@@ -55,64 +42,52 @@ const Logint = () => {
                 isClosable: true,
             })
 
-            if (message === 'Email does not exist') {
-                setUserNameError(true)
-            }
-
-            if (message === 'Wrong Password') {
-                setPassError(true)
-            }
-
             dispatch(reset())
         }
 
-        if (isSuccess && user) {
+        if (isSuccess && message) {
             if (helperFunctions !== null) {
                 toast({
                     position: 'top',
-                    title: 'successfully loggedIn',
+                    title: 'password changed successfully',
                     status: 'success',
                     duration: 10000,
                     isClosable: true,
                 })
                 helperFunctions.resetForm()
-                helperFunctions.setSubmitting(false)
-                setIsSubmittingp(false)
-                setHelperFunctions(null)
-                routeNavigate('/', { replace: true })
+                helperFunctions.setSubmitting(() => false)
+                setIsSubmittingp(() => false)
+                setHelperFunctions(() => null)
+                routeNavigate('/auth/login', { replace: true })
+                dispatch(reset())
             }
             dispatch(reset())
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [user, isError, isSuccess, message, dispatch])
+    }, [isError, isSuccess, message, dispatch])
     return (
         <Container direction='row'>
             <Stack
-                width='70%'
+                width='100%'
                 bg='#ffffff'
                 alignItems={'center'}
                 justifyContent='center'>
                 <Formik
                     initialValues={{
-                        email: '',
                         password: '',
-                        staySigned: false,
+                        passwordConfirmation: '',
                     }}
                     validationSchema={validationSchema}
                     onSubmit={(values, helpers) => {
                         setHelperFunctions(helpers)
-                        dispatch(LoginAction(values))
+                        let allVals = {
+                            ...values,
+                            tk: params.tk,
+                        }
+                        dispatch(ResetPassword(allVals))
                         setIsSubmittingp(() => true)
                     }}>
-                    {({
-                        values,
-                        handleChange,
-                        errors,
-                        isValid,
-                        dirty,
-                        touched,
-                        setFieldValue,
-                    }) => (
+                    {({ values, handleChange, errors, isValid, dirty }) => (
                         <Form>
                             <Stack spacing={'51px'}>
                                 {/** head && forms */}
@@ -121,74 +96,50 @@ const Logint = () => {
                                         spacing={0}
                                         alignItems={'center'}
                                         justifyContent='center'>
-                                        <TextSubHead>Welcome Back!</TextSubHead>
-
-                                        <TextHead>
-                                            Log in to your account
-                                        </TextHead>
+                                        <TextHead>Reset password</TextHead>
                                     </Stack>
 
                                     {/** input fields */}
-                                    <Stack spacing={'28px'}>
+                                    <Stack spacing={'28px'} minW='400px'>
                                         <Stack spacing={'20px'}>
                                             <InputFieldWrap spacing={'8px'}>
-                                                <label htmlFor='username'>
-                                                    Username
-                                                </label>
-                                                <InputField
-                                                    id='username'
-                                                    placeholder='username'
-                                                    autoComplete='username'
-                                                    type='email'
-                                                    name='email'
-                                                    value={values.email}
-                                                    onChange={handleChange}
-                                                />
-                                            </InputFieldWrap>
-                                            <InputFieldWrap spacing={'8px'}>
                                                 <label htmlFor='password'>
-                                                    Password
+                                                    New Password
                                                 </label>
                                                 <InputField
                                                     id='password'
                                                     type='password'
                                                     autoComplete='current-password'
-                                                    placeholder='password'
+                                                    placeholder='Enter new password here...'
                                                     value={values.password}
                                                     onChange={handleChange}
                                                     name='password'
                                                 />
                                             </InputFieldWrap>
-                                        </Stack>
-
-                                        <HStack
-                                            justifyContent={'space-between'}>
-                                            <Box className='checkbox'>
-                                                <Checkbox
-                                                    onChange={(e) => {
-                                                        setFieldValue(
-                                                            'staySigned',
-                                                            e.target.checked
-                                                        )
-                                                    }}
-                                                    isChecked={
-                                                        values.staySigned
+                                            <InputFieldWrap spacing={'8px'}>
+                                                <label htmlFor='passwordConfirmation'>
+                                                    Confirm Password
+                                                </label>
+                                                <InputField
+                                                    id='passwordConfirmation'
+                                                    type='password'
+                                                    autoComplete='current-password'
+                                                    placeholder='Confirm new password here...'
+                                                    value={
+                                                        values.passwordConfirmation
                                                     }
-                                                    colorScheme='blue'>
-                                                    Stay signed in
-                                                </Checkbox>
-                                            </Box>
-
-                                            <Box
-                                                className='forgotpasskey'
-                                                onClick={() =>
-                                                    routeNavigate(
-                                                        '/auth/forgotPasskey'
-                                                    )
-                                                }>
-                                                <Text>Forgot Password?</Text>
-                                            </Box>
-                                        </HStack>
+                                                    onChange={handleChange}
+                                                    name='passwordConfirmation'
+                                                />
+                                                {errors.passwordConfirmation && (
+                                                    <Text color='red'>
+                                                        {
+                                                            errors.passwordConfirmation
+                                                        }
+                                                    </Text>
+                                                )}
+                                            </InputFieldWrap>
+                                        </Stack>
                                     </Stack>
                                 </Stack>
 
@@ -200,19 +151,18 @@ const Logint = () => {
                                     isLoading={isSubmittingp ? true : false}
                                     variant='contained'
                                     className='button'>
-                                    Sign in
+                                    Reset Password
                                 </FormButton>
                             </Stack>
                         </Form>
                     )}
                 </Formik>
             </Stack>
-            <Box bg='#f3f4f5' width='30%'></Box>
         </Container>
     )
 }
 
-export default Logint
+export default ResetPasskey
 
 const Container = styled(Stack)`
     height: 100vh;
@@ -233,15 +183,7 @@ const Container = styled(Stack)`
         font-size: 12px;
         line-height: 20px;
         color: #7488d3;
-        cursor: pointer;
     }
-`
-
-const TextSubHead = styled(Text)`
-    font-weight: 400;
-    font-size: 15px;
-
-    color: #878a8c;
 `
 
 const TextHead = styled(Text)`

@@ -471,7 +471,7 @@ const Patients = () => {
                 spacing='20px'
                 bg='#f9fafa'
                 className='data-container'>
-                <Box w='100%' h='65px' className='stick'>
+                <Box w='100%' h='65px' className='stick' zIndex={'20'}>
                     <TopBar topbarData={{ title: '', count: null }} />
                 </Box>
 

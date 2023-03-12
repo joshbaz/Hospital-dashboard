@@ -104,7 +104,8 @@ export const CreatePrescription = createAsyncThunk(
         } else {
             if (
                 creationAttempt.message === 'jwt expired' ||
-                creationAttempt.message === 'Not authenticated'
+                creationAttempt.message === 'Not authenticated' ||
+                creationAttempt.message === 'jwt malformed'
             ) {
                 authService.logout()
                 return thunkAPI.rejectWithValue(creationAttempt.message)
@@ -126,7 +127,8 @@ export const EditPrescription = createAsyncThunk(
         } else {
             if (
                 creationAttempt.message === 'jwt expired' ||
-                creationAttempt.message === 'Not authenticated'
+                creationAttempt.message === 'Not authenticated' ||
+                creationAttempt.message === 'jwt malformed'
             ) {
                 authService.logout()
                 return thunkAPI.rejectWithValue(creationAttempt.message)
@@ -148,7 +150,8 @@ export const CreateRefill = createAsyncThunk(
         } else {
             if (
                 creationAttempt.message === 'jwt expired' ||
-                creationAttempt.message === 'Not authenticated'
+                creationAttempt.message === 'Not authenticated' ||
+                creationAttempt.message === 'jwt malformed'
             ) {
                 authService.logout()
                 return thunkAPI.rejectWithValue(creationAttempt.message)
@@ -169,7 +172,8 @@ export const GetAllPatients = createAsyncThunk(
         } else {
             if (
                 getAttempt.message === 'jwt expired' ||
-                getAttempt.message === 'Not authenticated'
+                getAttempt.message === 'Not authenticated' ||
+                getAttempt.message === 'jwt malformed'
             ) {
                 authService.logout()
                 return thunkAPI.rejectWithValue(getAttempt.message)
@@ -193,7 +197,8 @@ export const GetIndividualVitalSummary = createAsyncThunk(
         } else {
             if (
                 getAttempt.message === 'jwt expired' ||
-                getAttempt.message === 'Not authenticated'
+                getAttempt.message === 'Not authenticated' ||
+                getAttempt.message === 'jwt malformed'
             ) {
                 authService.logout()
                 return thunkAPI.rejectWithValue(getAttempt.message)
@@ -216,7 +221,8 @@ export const GetIndividualPrescriptionSummary = createAsyncThunk(
         } else {
             if (
                 getAttempt.message === 'jwt expired' ||
-                getAttempt.message === 'Not authenticated'
+                getAttempt.message === 'Not authenticated' ||
+                getAttempt.message === 'jwt malformed'
             ) {
                 authService.logout()
                 return thunkAPI.rejectWithValue(getAttempt.message)
@@ -238,7 +244,8 @@ export const GetIndividualPatient = createAsyncThunk(
         } else {
             if (
                 getAttempt.message === 'jwt expired' ||
-                getAttempt.message === 'Not authenticated'
+                getAttempt.message === 'Not authenticated' ||
+                getAttempt.message === 'jwt malformed'
             ) {
                 authService.logout()
                 return thunkAPI.rejectWithValue(getAttempt.message)
@@ -261,7 +268,8 @@ export const GetAllBPVitals = createAsyncThunk(
         } else {
             if (
                 getAttempt.message === 'jwt expired' ||
-                getAttempt.message === 'Not authenticated'
+                getAttempt.message === 'Not authenticated' ||
+                getAttempt.message === 'jwt malformed'
             ) {
                 authService.logout()
                 return thunkAPI.rejectWithValue(getAttempt.message)
@@ -282,7 +290,8 @@ export const GetAllBSVitals = createAsyncThunk(
         } else {
             if (
                 getAttempt.message === 'jwt expired' ||
-                getAttempt.message === 'Not authenticated'
+                getAttempt.message === 'Not authenticated' ||
+                getAttempt.message === 'jwt malformed'
             ) {
                 authService.logout()
                 return thunkAPI.rejectWithValue(getAttempt.message)
@@ -303,7 +312,8 @@ export const GetAllFAVitals = createAsyncThunk(
         } else {
             if (
                 getAttempt.message === 'jwt expired' ||
-                getAttempt.message === 'Not authenticated'
+                getAttempt.message === 'Not authenticated' ||
+                getAttempt.message === 'jwt malformed'
             ) {
                 authService.logout()
                 return thunkAPI.rejectWithValue(getAttempt.message)
@@ -324,7 +334,8 @@ export const GetAllEListVitals = createAsyncThunk(
         } else {
             if (
                 getAttempt.message === 'jwt expired' ||
-                getAttempt.message === 'Not authenticated'
+                getAttempt.message === 'Not authenticated' ||
+                getAttempt.message === 'jwt malformed'
             ) {
                 authService.logout()
                 return thunkAPI.rejectWithValue(getAttempt.message)
@@ -347,7 +358,8 @@ export const GetMainRecentVitals = createAsyncThunk(
         } else {
             if (
                 getAttempt.message === 'jwt expired' ||
-                getAttempt.message === 'Not authenticated'
+                getAttempt.message === 'Not authenticated' ||
+                getAttempt.message === 'jwt malformed'
             ) {
                 authService.logout()
                 return thunkAPI.rejectWithValue(getAttempt.message)
@@ -369,7 +381,8 @@ export const GetMainSummaryVitals = createAsyncThunk(
         } else {
             if (
                 getAttempt.message === 'jwt expired' ||
-                getAttempt.message === 'Not authenticated'
+                getAttempt.message === 'Not authenticated' ||
+                getAttempt.message === 'jwt malformed'
             ) {
                 authService.logout()
                 return thunkAPI.rejectWithValue(getAttempt.message)
@@ -393,7 +406,8 @@ export const GetMainMonthlySummaryVitals = createAsyncThunk(
         } else {
             if (
                 getAttempt.message === 'jwt expired' ||
-                getAttempt.message === 'Not authenticated'
+                getAttempt.message === 'Not authenticated' ||
+                getAttempt.message === 'jwt malformed'
             ) {
                 authService.logout()
                 return thunkAPI.rejectWithValue(getAttempt.message)
@@ -416,7 +430,8 @@ export const GetdashboardReports = createAsyncThunk(
         } else {
             if (
                 getAttempt.message === 'jwt expired' ||
-                getAttempt.message === 'Not authenticated'
+                getAttempt.message === 'Not authenticated' ||
+                getAttempt.message === 'jwt malformed'
             ) {
                 authService.logout()
                 return thunkAPI.rejectWithValue(getAttempt.message)
@@ -440,7 +455,8 @@ export const GetdashboardPieGraph = createAsyncThunk(
         } else {
             if (
                 getAttempt.message === 'jwt expired' ||
-                getAttempt.message === 'Not authenticated'
+                getAttempt.message === 'Not authenticated' ||
+                getAttempt.message === 'jwt malformed'
             ) {
                 authService.logout()
                 return thunkAPI.rejectWithValue(getAttempt.message)
@@ -464,7 +480,8 @@ export const GetdashboardBarGraph = createAsyncThunk(
         } else {
             if (
                 getAttempt.message === 'jwt expired' ||
-                getAttempt.message === 'Not authenticated'
+                getAttempt.message === 'Not authenticated' ||
+                getAttempt.message === 'jwt malformed'
             ) {
                 authService.logout()
                 return thunkAPI.rejectWithValue(getAttempt.message)

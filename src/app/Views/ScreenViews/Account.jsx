@@ -29,6 +29,13 @@ import {
 import { useDispatch, useSelector } from 'react-redux'
 import { Formik, Form } from 'formik'
 import * as yup from 'yup'
+import { io } from 'socket.io-client'
+import { BASE_API_ } from '../../../middleware/base_url.config'
+let socket = io(BASE_API_, {
+    transports: ['websocket'],
+    upgrade: false,
+    //reconnection: false,
+})
 
 const Account = () => {
     let dispatch = useDispatch()
@@ -73,7 +80,7 @@ const Account = () => {
             dispatch(reset())
         }
 
-        if (isSuccess && isSubmittingp) {
+        if (isSuccess && message) {
             if (helperFunctions !== null) {
                 toast({
                     position: 'top',
@@ -85,8 +92,11 @@ const Account = () => {
 
                 helperFunctions.resetForm()
                 helperFunctions.setSubmitting(false)
-                setIsSubmittingp(false)
-                setHelperFunctions(null)
+                setIsSubmittingp(() => false)
+                setHelperFunctions(() => null)
+                setEditSettings(() => false)
+                setEditDetails(() => false)
+                dispatch(reset())
             }
             dispatch(reset())
         }
@@ -164,6 +174,25 @@ const Account = () => {
     const cancelChangeKeyUpload = () => {
         setChangePassword(() => false)
     }
+
+    React.useEffect(() => {
+        socket.on('update-users', (data) => {
+            if (
+                data.actions === 'request-user' &&
+                data.data === userdetails.id
+            ) {
+                dispatch(GetUserDetails())
+            }
+        })
+
+        return () => {
+            socket.off('update-users')
+
+            //LocalSockets.removeAllListeners('update-dash-vitals')
+
+            // io.disconnect()
+        }
+    }, [dispatch, userdetails])
     return (
         <Container direction='row' w='100vw' spacing={'0px'}>
             <Box w='303px' position='relative'>
@@ -179,7 +208,7 @@ const Account = () => {
                 spacing='20px'
                 bg='#f9fafa'
                 className='data-container'>
-                <Box w='100%' h='65px' className='stick'>
+                <Box w='100%' h='65px' className='stick' zIndex={'20'}>
                     <TopBar topbarData={{ title: '', count: null }} />
                 </Box>
 
@@ -353,7 +382,8 @@ const Account = () => {
                                 </Stack>
 
                                 {/** applecation */}
-                                <Stack spacing={'20px'}>
+                                {/**
+                                     *  <Stack spacing={'20px'}>
                                     <Text className='tableform_head'>
                                         Application
                                     </Text>
@@ -381,6 +411,9 @@ const Account = () => {
                                         </Stack>
                                     </Stack>
                                 </Stack>
+                                     * 
+                                     * 
+                                     */}
                             </InputDetailContainer>
 
                             {/** password */}
@@ -528,7 +561,8 @@ const Account = () => {
                                                 </Stack>
 
                                                 {/** applecation */}
-                                                <Stack spacing={'20px'}>
+                                                {/**
+                                                 * <Stack spacing={'20px'}>
                                                     <Text className='tableform_head'>
                                                         Application
                                                     </Text>
@@ -571,6 +605,9 @@ const Account = () => {
                                                         </Stack>
                                                     </Stack>
                                                 </Stack>
+                                                 * 
+                                                 * 
+                                                 */}
                                             </Stack>
                                         </Stack>
                                         <Stack
@@ -1247,5 +1284,9 @@ const PopupForm = styled(Stack)`
         &:hover {
             background: #3e66fb;
         }
+    }
+
+    .chakra-switch__thumb {
+        margin: 0 !important;
     }
 `

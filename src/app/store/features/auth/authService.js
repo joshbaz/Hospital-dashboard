@@ -42,6 +42,13 @@ const Login = async (userData) => {
 const logout = async () => {
     Cookies.remove('_tk')
     Cookies.remove('user')
+    Cookies.remove('vDatetype')
+    Cookies.remove('vtype')
+    Cookies.remove('ppDatetype')
+    Cookies.remove('bartype')
+    Cookies.remove('ptype')
+    Cookies.remove('ppDateType')
+    window.location.reload()
 }
 
 //get all patients
@@ -140,6 +147,59 @@ const updatePasskey = async (userDetails) => {
     }
 }
 
+/** resetting passwords */
+const forgotPasskey = async (userDetails) => {
+    try {
+        const response = await axios.put(
+            `${BASE_API_}/admin/v1/forgotpasskey`,
+            userDetails
+        )
+
+        return {
+            message: response.data,
+            type: 'success',
+        }
+    } catch (error) {
+        let errorResult = errorFunction(error)
+        return errorResult
+    }
+}
+
+//verify reset token
+const verifyPasskeyReset = async (userDetails) => {
+    try {
+        const response = await axios.get(
+            `${BASE_API_}/admin/v1/verifyreset/${userDetails}`
+        )
+
+        return {
+            message: response.data,
+            type: 'success',
+        }
+    } catch (error) {
+        let errorResult = errorFunction(error)
+        return errorResult
+    }
+}
+
+//verify reset token
+const resetPassword = async (userDetails) => {
+    try {
+        const response = await axios.put(
+            `${BASE_API_}/admin/v1/resetpassword/${userDetails.tk}`,
+            userDetails
+        )
+
+        return {
+            message: response.data,
+            type: 'success',
+        }
+    } catch (error) {
+        let errorResult = errorFunction(error)
+        return errorResult
+    }
+}
+
 const authService = {
     Login,
     logout,
@@ -147,6 +207,9 @@ const authService = {
     updatePasskey,
     updateSettings,
     updateDetails,
+    forgotPasskey,
+    verifyPasskeyReset,
+    resetPassword,
 }
 
 export default authService
